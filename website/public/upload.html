@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PrintFlow — Zamów wydruk 3D</title>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+    :root { --bg: #0f172a; --blue: #3b82f6; --border: rgba(255,255,255,0.06); --text: #F8FAFC; --text-sec: #94A3B8; --text-muted: #64748B; }
+    body { font-family: 'Inter', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 24px; }
+    .back { position: absolute; top: 24px; left: 24px; display: flex; align-items: center; gap: 8px; color: var(--text-sec); font-size: 14px; text-decoration: none; transition: color 0.2s; }
+    .back:hover { color: white; }
+    .back svg { width: 18px; height: 18px; }
+    .logo { display: flex; align-items: center; gap: 8px; margin-bottom: 40px; }
+    .logo-icon { width: 40px; height: 40px; border-radius: 12px; background: linear-gradient(135deg, var(--blue), #2563eb); display: flex; align-items: center; justify-content: center; }
+    .logo-icon svg { width: 22px; height: 22px; color: white; }
+    .logo-text { font-size: 22px; font-weight: 700; }
+    .logo-text span { color: var(--blue); }
+    .card { width: 100%; max-width: 640px; }
+    h1 { font-size: clamp(28px, 4vw, 42px); font-weight: 800; text-align: center; letter-spacing: -0.02em; }
+    h1 span { background: linear-gradient(135deg, var(--blue), #ff6b6b); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+    .subtitle { text-align: center; color: var(--text-sec); margin-top: 12px; font-size: 16px; }
+    .upload-area {
+      margin-top: 40px; border: 2px dashed rgba(59,130,246,0.3); border-radius: 24px;
+      padding: 80px 32px; text-align: center; background: rgba(59,130,246,0.03);
+      cursor: pointer; transition: all 0.3s; position: relative;
+    }
+    .upload-area:hover { border-color: rgba(59,130,246,0.6); background: rgba(59,130,246,0.06); transform: translateY(-2px); }
+    .upload-area.dragover { border-color: var(--blue); background: rgba(59,130,246,0.1); transform: scale(1.01); }
+    .upload-icon { width: 80px; height: 80px; border-radius: 20px; background: rgba(59,130,246,0.1); display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; }
+    .upload-icon svg { width: 40px; height: 40px; color: var(--blue); }
+    .upload-title { font-size: 20px; font-weight: 600; color: white; }
+    .upload-sub { font-size: 14px; color: var(--text-muted); margin-top: 8px; }
+    .formats { margin-top: 20px; display: flex; gap: 10px; justify-content: center; }
+    .format-tag { padding: 5px 14px; border-radius: 8px; font-size: 13px; font-weight: 500; background: rgba(59,130,246,0.1); color: var(--blue); }
+    .file-input { display: none; }
+
+    /* Po wybraniu pliku */
+    .file-selected { margin-top: 24px; padding: 16px 20px; border-radius: 12px; background: rgba(59,130,246,0.08); border: 1px solid rgba(59,130,246,0.2); display: none; align-items: center; gap: 12px; }
+    .file-selected.show { display: flex; }
+    .file-selected svg { width: 20px; height: 20px; color: var(--blue); flex-shrink: 0; }
+    .file-name { font-size: 14px; color: white; font-weight: 500; flex: 1; }
+    .file-size { font-size: 13px; color: var(--text-muted); }
+
+    /* Opcje */
+    .options { margin-top: 32px; display: flex; flex-direction: column; gap: 16px; display: none; }
+    .options.show { display: flex; }
+    .opt-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    @media (max-width: 500px) { .opt-row { grid-template-columns: 1fr; } }
+    label { font-size: 13px; color: var(--text-sec); display: block; margin-bottom: 6px; }
+    select, input[type="number"] {
+      width: 100%; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border);
+      background: rgba(255,255,255,0.03); color: white; font-size: 14px; font-family: inherit; outline: none;
+      -webkit-appearance: none; appearance: none;
+    }
+    select:focus, input:focus { border-color: rgba(59,130,246,0.4); }
+    select { background-image: url("data:image/svg+xml,%3Csvg width='12' height='8' viewBox='0 0 12 8' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M1 1.5L6 6.5L11 1.5' stroke='%2394A3B8' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E"); background-repeat: no-repeat; background-position: right 14px center; padding-right: 36px; }
+    select option { background: #1e293b; color: white; }
+
+    .submit-btn {
+      margin-top: 24px; width: 100%; padding: 16px; border-radius: 14px; border: none;
+      font-size: 17px; font-weight: 600; color: white; background: var(--blue);
+      cursor: pointer; transition: all 0.2s; display: none;
+    }
+    .submit-btn.show { display: block; }
+    .submit-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    .info { margin-top: 16px; text-align: center; font-size: 13px; color: var(--text-muted); }
+  </style>
+</head>
+<body>
+
+<a href="index.html" class="back">
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="m12 19-7-7 7-7"/><path d="M19 12H5"/></svg>
+  Powrót
+</a>
+
+<div class="card">
+  <div class="logo" style="justify-content: center;">
+    <div class="logo-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg></div>
+    <div class="logo-text">Print<span>Flow</span></div>
+  </div>
+
+  <h1>Zamów <span>wydruk 3D</span></h1>
+  <p class="subtitle">Wrzuć plik, wybierz opcje, porównaj farmy. Bez rejestracji.</p>
+
+  <div class="upload-area" id="dropZone" onclick="document.getElementById('fileInput').click()">
+    <div class="upload-icon">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" x2="12" y1="3" y2="15"/></svg>
+    </div>
+    <p class="upload-title">Przeciągnij plik tutaj</p>
+    <p class="upload-sub">lub kliknij żeby wybrać z dysku • max 100 MB</p>
+    <div class="formats">
+      <span class="format-tag">.STL</span>
+      <span class="format-tag">.3MF</span>
+      <span class="format-tag">.OBJ</span>
+    </div>
+    <input type="file" id="fileInput" class="file-input" accept=".stl,.3mf,.obj">
+  </div>
+
+  <div class="file-selected" id="fileInfo">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="20 6 9 17 4 12"/></svg>
+    <span class="file-name" id="fileName">—</span>
+    <span class="file-size" id="fileSize">—</span>
+  </div>
+
+  <div class="options" id="options">
+    <div class="opt-row">
+      <div>
+        <label>Materiał</label>
+        <select>
+          <option>PLA (najtańszy, popularny)</option>
+          <option>PETG (wytrzymały, odporny)</option>
+          <option>ABS (twardy, precyzyjny)</option>
+          <option>TPU (elastyczny, gumowy)</option>
+          <option>ASA (outdoor, UV-odporny)</option>
+          <option>Nylon (mechaniczny)</option>
+        </select>
+      </div>
+      <div>
+        <label>Kolor</label>
+        <select>
+          <option>⚫ Czarny</option>
+          <option>⚪ Biały</option>
+          <option>🔴 Czerwony</option>
+          <option>🔵 Niebieski</option>
+          <option>🟢 Zielony</option>
+          <option>🟡 Żółty</option>
+          <option>🟠 Pomarańczowy</option>
+          <option>🟤 Szary</option>
+        </select>
+      </div>
+    </div>
+    <div class="opt-row">
+      <div>
+        <label>Jakość druku</label>
+        <select>
+          <option>Draft (0.3mm) — najszybciej</option>
+          <option selected>Standard (0.2mm) — balans</option>
+          <option>High (0.12mm) — najlepsza</option>
+        </select>
+      </div>
+      <div>
+        <label>Wypełnienie (infill)</label>
+        <select>
+          <option>15% — lekki (figurki)</option>
+          <option selected>30% — standard</option>
+          <option>50% — mocny (części)</option>
+          <option>100% — pełny</option>
+        </select>
+      </div>
+    </div>
+    <div class="opt-row">
+      <div>
+        <label>Ilość sztuk</label>
+        <input type="number" value="1" min="1" max="10000" style="width: 100%;">
+      </div>
+      <div>
+        <label>Szybkość</label>
+        <select>
+          <option selected>Standard — najtaniej</option>
+          <option>Express (+30%) — priorytet</option>
+          <option>Rush (+50%) — natychmiast</option>
+        </select>
+      </div>
+    </div>
+  </div>
+
+  <button class="submit-btn" id="submitBtn">🔍 Pokaż wyceny z farm →</button>
+  <p class="info" id="infoText" style="display: none;">Porównamy ceny z dostępnych farm i pokażemy najlepsze oferty</p>
+</div>
+
+<script>
+const dropZone = document.getElementById('dropZone');
+const fileInput = document.getElementById('fileInput');
+const fileInfo = document.getElementById('fileInfo');
+const fileName = document.getElementById('fileName');
+const fileSize = document.getElementById('fileSize');
+const options = document.getElementById('options');
+const submitBtn = document.getElementById('submitBtn');
+const infoText = document.getElementById('infoText');
+
+function handleFile(file) {
+  if (!file) return;
+  const ext = file.name.split('.').pop().toLowerCase();
+  if (!['stl', '3mf', 'obj'].includes(ext)) {
+    alert('Nieobsługiwany format. Użyj .STL, .3MF lub .OBJ');
+    return;
+  }
+  fileName.textContent = file.name;
+  const size = file.size < 1024*1024
+    ? (file.size / 1024).toFixed(1) + ' KB'
+    : (file.size / (1024*1024)).toFixed(1) + ' MB';
+  fileSize.textContent = size;
+  fileInfo.classList.add('show');
+  options.classList.add('show');
+  submitBtn.classList.add('show');
+  infoText.style.display = 'block';
+}
+
+fileInput.addEventListener('change', (e) => handleFile(e.target.files[0]));
+
+dropZone.addEventListener('dragover', (e) => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  handleFile(e.dataTransfer.files[0]);
+});
+
+submitBtn.addEventListener('click', () => {
+  alert('🚧 Wycena z farm — wkrótce! Platforma w budowie.');
+});
+</script>
+
+</body>
+</html>
