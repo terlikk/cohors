@@ -1,0 +1,205 @@
+// PrintFlow — Database Schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ==================== MULTI-TENANT ====================
+
+model Organization {
+  id        String   @id @default(cuid())
+  name      String
+  slug      String   @unique
+  plan      Plan     @default(FREE)
+  stripeCustomerId    String?
+  stripeSubscriptionId String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  members   Member[]
+  printers  Printer[]
+  orders    Order[]
+  materials Material[]
+}
+
+enum Plan {
+  FREE
+  STARTER
+  PRO
+  ENTERPRISE
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String?
+  passwordHash  String?
+  avatarUrl     String?
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  memberships   Member[]
+  orders        Order[]
+}
+
+model Member {
+  id             String       @id @default(cuid())
+  role           MemberRole   @default(OPERATOR)
+  userId         String
+  organizationId String
+  createdAt      DateTime     @default(now())
+
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, organizationId])
+}
+
+enum MemberRole {
+  ADMIN
+  OPERATOR
+  VIEWER
+  CLIENT
+}
+
+// ==================== DRUKARKI ====================
+
+model Printer {
+  id             String        @id @default(cuid())
+  name           String
+  type           PrinterType
+  status         PrinterStatus @default(OFFLINE)
+  organizationId String
+  apiUrl         String
+  apiType        ApiType
+  apiKey         String?
+  cameraUrl      String?
+  bedSizeX       Float?
+  bedSizeY       Float?
+  bedSizeZ       Float?
+  nozzleDiameter Float         @default(0.4)
+  totalPrints    Int           @default(0)
+  successfulPrints Int         @default(0)
+  totalPrintHours Float        @default(0)
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+
+  organization   Organization  @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  printJobs      PrintJob[]
+}
+
+enum PrinterType { FDM; SLA; SLS }
+enum PrinterStatus { IDLE; PRINTING; PAUSED; ERROR; MAINTENANCE; OFFLINE }
+enum ApiType { MOONRAKER; OCTOPRINT; BAMBU_CLOUD; PRUSA_CONNECT }
+
+// ==================== MATERIAŁY ====================
+
+model Material {
+  id             String   @id @default(cuid())
+  name           String
+  type           String
+  color          String?
+  pricePerKg     Float
+  densityGCm3    Float    @default(1.24)
+  stockGrams     Float?
+  minStockGrams  Float?
+  organizationId String
+  createdAt      DateTime @default(now())
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  printJobs      PrintJob[]
+}
+
+// ==================== ZAMÓWIENIA ====================
+
+model Order {
+  id             String      @id @default(cuid())
+  orderNumber    String      @unique @default(cuid())
+  status         OrderStatus @default(PENDING)
+  organizationId String
+  customerId     String?
+  customerEmail  String?
+  customerName   String?
+  totalPrice     Float?
+  currency       String      @default("PLN")
+  stripePaymentIntentId String?
+  paidAt         DateTime?
+  source         OrderSource @default(PLATFORM)
+  externalOrderId String?
+  notes          String?
+  createdAt      DateTime    @default(now())
+  updatedAt      DateTime    @updatedAt
+
+  organization   Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  customer       User?        @relation(fields: [customerId], references: [id])
+  items          OrderItem[]
+}
+
+enum OrderStatus { PENDING; PAID; IN_PRODUCTION; COMPLETED; SHIPPED; CANCELLED }
+enum OrderSource { PLATFORM; SHOPIFY; WOOCOMMERCE; API }
+
+model OrderItem {
+  id           String   @id @default(cuid())
+  orderId      String
+  quantity     Int      @default(1)
+  fileName     String
+  fileUrl      String
+  fileSizeBytes Int?
+  layerHeight  Float?   @default(0.2)
+  infill       Int?     @default(20)
+  supports     Boolean  @default(false)
+  estimatedMinutes Int?
+  estimatedGrams   Float?
+  pricePerUnit     Float?
+  createdAt    DateTime @default(now())
+
+  order        Order    @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  printJobs    PrintJob[]
+}
+
+// ==================== PRINT JOBS ====================
+
+model PrintJob {
+  id             String       @id @default(cuid())
+  status         JobStatus    @default(QUEUED)
+  priority       Int          @default(0)
+  orderItemId    String?
+  printerId      String?
+  materialId     String?
+  gcodeUrl       String?
+  slicedAt       DateTime?
+  startedAt      DateTime?
+  completedAt    DateTime?
+  failedAt       DateTime?
+  failReason     String?
+  progressPercent Float?
+  currentLayer    Int?
+  totalLayers     Int?
+  lastSnapshotUrl String?
+  aiConfidence    Float?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  orderItem      OrderItem?   @relation(fields: [orderItemId], references: [id])
+  printer        Printer?     @relation(fields: [printerId], references: [id])
+  material       Material?    @relation(fields: [materialId], references: [id])
+  events         PrintEvent[]
+}
+
+enum JobStatus { QUEUED; SLICING; READY; ASSIGNED; PRINTING; PAUSED; COMPLETED; FAILED; CANCELLED }
+
+model PrintEvent {
+  id         String   @id @default(cuid())
+  jobId      String
+  type       String
+  message    String?
+  metadata   Json?
+  createdAt  DateTime @default(now())
+
+  job        PrintJob @relation(fields: [jobId], references: [id], onDelete: Cascade)
+}
