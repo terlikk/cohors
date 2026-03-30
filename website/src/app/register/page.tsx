@@ -56,18 +56,18 @@ export default function RegisterPage() {
 
       <div className="w-full max-w-lg">
         <div className="flex items-center gap-2 justify-center mb-10">
-          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #ff6b6b, #e05555)' }}>
+          <div className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
             <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
           </div>
-          <span className="text-[22px] font-bold text-white">Print<span style={{ color: '#ff6b6b' }}>Flow</span></span>
+          <span className="text-[22px] font-bold text-white">Print<span style={{ color: '#22C55E' }}>Flow</span></span>
         </div>
 
         <h1 className="text-center font-extrabold tracking-tight" style={{ fontSize: 'clamp(28px, 4vw, 42px)' }}>
-          Zaloz <span style={{ background: 'linear-gradient(135deg, #ff6b6b, #3b82f6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>farme</span>
+          Zaloz <span style={{ background: 'linear-gradient(135deg, #22C55E, #8B5CF6)', WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>farme</span>
         </h1>
         <p className="text-center text-slate-400 mt-3 text-base">Darmowe konto. Zacznij przyjmowac zlecenia w 5 minut.</p>
 
-        <form onSubmit={handleRegister} className="mt-10 rounded-3xl p-8" style={{ background: 'rgba(255,107,107,0.03)', border: '1px solid rgba(255,107,107,0.15)' }}>
+        <form onSubmit={handleRegister} className="mt-10 rounded-3xl p-8" style={{ background: 'rgba(34,197,94,0.03)', border: '1px solid rgba(34,197,94,0.15)' }}>
           {error && (
             <div className="mb-4 p-3 rounded-lg text-sm text-red-300" style={{ background: 'rgba(239,68,68,0.1)', border: '1px solid rgba(239,68,68,0.2)' }}>
               {error}
@@ -84,7 +84,7 @@ export default function RegisterPage() {
               placeholder="np. 3DPrint Warszawa"
               className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none transition-colors"
               style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(255,107,107,0.4)'}
+              onFocus={e => e.target.style.borderColor = 'rgba(34,197,94,0.4)'}
               onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.06)'}
             />
           </div>
@@ -99,7 +99,7 @@ export default function RegisterPage() {
               placeholder="twoj@email.pl"
               className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none transition-colors"
               style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(255,107,107,0.4)'}
+              onFocus={e => e.target.style.borderColor = 'rgba(34,197,94,0.4)'}
               onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.06)'}
             />
           </div>
@@ -114,7 +114,7 @@ export default function RegisterPage() {
               placeholder="Min. 8 znakow"
               className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none transition-colors"
               style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(255,107,107,0.4)'}
+              onFocus={e => e.target.style.borderColor = 'rgba(34,197,94,0.4)'}
               onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.06)'}
             />
           </div>
@@ -129,7 +129,7 @@ export default function RegisterPage() {
               placeholder="np. Warszawa"
               className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none transition-colors"
               style={inputStyle}
-              onFocus={e => e.target.style.borderColor = 'rgba(255,107,107,0.4)'}
+              onFocus={e => e.target.style.borderColor = 'rgba(34,197,94,0.4)'}
               onBlur={e => e.target.style.borderColor = 'rgba(255,255,255,0.06)'}
             />
           </div>
@@ -138,14 +138,14 @@ export default function RegisterPage() {
             type="submit"
             disabled={loading}
             className="w-full py-4 rounded-xl text-white font-semibold text-[17px] border-none cursor-pointer transition-all hover:opacity-90"
-            style={{ background: '#ff6b6b' }}
+            style={{ background: '#22C55E' }}
           >
             {loading ? 'Rejestracja...' : 'Zaloz farme za darmo'}
           </button>
 
           <p className="mt-5 text-center text-[13px] text-slate-500">
             Marketplace zawsze za darmo &bull; Prowizja 7% od transakcji<br />
-            Masz juz konto? <a href="/login" className="underline" style={{ color: '#ff6b6b' }}>Zaloguj sie</a>
+            Masz juz konto? <a href="/login" className="underline" style={{ color: '#22C55E' }}>Zaloguj sie</a>
           </p>
         </form>
 
@@ -158,7 +158,7 @@ export default function RegisterPage() {
             ['&#x1F4B3;', 'Stripe Connect — auto-wyplaty na konto'],
           ].map(([icon, text], i) => (
             <div key={i} className="flex items-center gap-2.5 text-sm text-slate-400">
-              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0" style={{ background: 'rgba(255,107,107,0.1)' }} dangerouslySetInnerHTML={{ __html: icon }} />
+              <div className="w-7 h-7 rounded-lg flex items-center justify-center text-sm shrink-0" style={{ background: 'rgba(34,197,94,0.1)' }} dangerouslySetInnerHTML={{ __html: icon }} />
               {text}
             </div>
           ))}

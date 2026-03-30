@@ -23,7 +23,7 @@ const MATERIALS = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon', 'PC']
 
 const STATUS_STYLES: Record<string, { bg: string; border: string; color: string; label: string }> = {
   idle: { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)', color: '#4ade80', label: 'Idle' },
-  printing: { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)', color: '#60a5fa', label: 'Printing' },
+  printing: { bg: 'rgba(139,92,246,0.1)', border: 'rgba(139,92,246,0.3)', color: '#a78bfa', label: 'Printing' },
   error: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', color: '#f87171', label: 'Error' },
 }
 
@@ -163,10 +163,10 @@ export default function DashboardPage() {
       {/* Header */}
       <header className="flex items-center justify-between px-6 py-4" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-2">
-          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #ff6b6b, #e05555)' }}>
+          <div className="w-9 h-9 rounded-lg flex items-center justify-center" style={{ background: 'linear-gradient(135deg, #22C55E, #16A34A)' }}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
           </div>
-          <span className="text-lg font-bold text-white">Print<span style={{ color: '#ff6b6b' }}>Flow</span></span>
+          <span className="text-lg font-bold text-white">Print<span style={{ color: '#22C55E' }}>Flow</span></span>
         </div>
         <div className="flex items-center gap-4">
           <span className="text-sm text-slate-400">{user?.email}</span>
@@ -183,7 +183,7 @@ export default function DashboardPage() {
       <div className="flex min-h-[calc(100vh-65px)]">
         {/* Sidebar */}
         <aside className="w-60 flex-shrink-0 py-6 px-3" style={{ borderRight: '1px solid rgba(255,255,255,0.06)' }}>
-          <div className="rounded-xl p-3 mb-6" style={{ background: 'rgba(255,107,107,0.05)', border: '1px solid rgba(255,107,107,0.1)' }}>
+          <div className="rounded-xl p-3 mb-6" style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.1)' }}>
             <p className="text-white font-semibold text-sm truncate">{farmName}</p>
             {userCity && <p className="text-slate-500 text-[12px] mt-0.5">{userCity}</p>}
           </div>
@@ -195,8 +195,8 @@ export default function DashboardPage() {
                 onClick={() => setActiveTab(tab.id)}
                 className="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all border-none text-left w-full"
                 style={{
-                  background: activeTab === tab.id ? 'rgba(255,107,107,0.1)' : 'transparent',
-                  color: activeTab === tab.id ? '#ff6b6b' : '#94a3b8',
+                  background: activeTab === tab.id ? 'rgba(34,197,94,0.1)' : 'transparent',
+                  color: activeTab === tab.id ? '#22C55E' : '#94a3b8',
                 }}
               >
                 {tab.icon}
@@ -219,16 +219,16 @@ export default function DashboardPage() {
                 <button
                   onClick={() => setShowAddModal(true)}
                   className="px-4 py-2 rounded-xl text-sm font-medium text-white cursor-pointer transition-all hover:opacity-90 border-none"
-                  style={{ background: '#ff6b6b' }}
+                  style={{ background: '#22C55E' }}
                 >
                   + Dodaj drukarkę
                 </button>
               </div>
 
               {printers.length === 0 ? (
-                <div className="rounded-2xl p-10 text-center" style={{ border: '2px dashed rgba(255,107,107,0.2)', background: 'rgba(255,107,107,0.02)' }}>
-                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(255,107,107,0.1)' }}>
-                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#ff6b6b" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                <div className="rounded-2xl p-10 text-center" style={{ border: '2px dashed rgba(34,197,94,0.2)', background: 'rgba(34,197,94,0.02)' }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(34,197,94,0.1)' }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
                   </div>
                   <p className="text-slate-400 text-sm">Nie masz jeszcze drukarek. Dodaj pierwszą drukarkę, aby rozpocząć!</p>
                 </div>
@@ -253,7 +253,7 @@ export default function DashboardPage() {
                         </div>
                         <div className="flex flex-wrap gap-1.5 mb-3">
                           {printer.materials.map(mat => (
-                            <span key={mat} className="px-2 py-0.5 rounded text-[11px] font-medium" style={{ background: 'rgba(59,130,246,0.1)', color: '#60a5fa' }}>
+                            <span key={mat} className="px-2 py-0.5 rounded text-[11px] font-medium" style={{ background: 'rgba(139,92,246,0.1)', color: '#a78bfa' }}>
                               {mat}
                             </span>
                           ))}
@@ -279,7 +279,7 @@ export default function DashboardPage() {
               <p className="text-slate-500 text-sm mb-8">Wszystkie przychodzące zlecenia od klientów.</p>
 
               <div className="rounded-2xl p-12 text-center" style={{ border: '2px dashed rgba(255,255,255,0.08)', background: 'rgba(255,255,255,0.01)' }}>
-                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(255,107,107,0.08)' }}>
+                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(34,197,94,0.08)' }}>
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="1.5"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg>
                 </div>
                 <p className="text-white font-semibold text-lg mb-1">Brak zamówień</p>
@@ -337,7 +337,7 @@ export default function DashboardPage() {
 
               <div className="rounded-2xl p-6" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
                 <div className="flex items-center gap-4 mb-6 pb-6" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
-                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white" style={{ background: 'rgba(255,107,107,0.15)' }}>
+                  <div className="w-16 h-16 rounded-2xl flex items-center justify-center text-2xl font-bold text-white" style={{ background: 'rgba(34,197,94,0.15)' }}>
                     {farmName.charAt(0).toUpperCase()}
                   </div>
                   <div>
@@ -438,9 +438,9 @@ export default function DashboardPage() {
                       onClick={() => setNewPrinter(p => ({ ...p, nozzle: n }))}
                       className="px-4 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all border-none"
                       style={{
-                        background: newPrinter.nozzle === n ? 'rgba(59,130,246,0.2)' : 'rgba(255,255,255,0.03)',
-                        color: newPrinter.nozzle === n ? '#3b82f6' : '#94a3b8',
-                        outline: newPrinter.nozzle === n ? '1px solid rgba(59,130,246,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                        background: newPrinter.nozzle === n ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.03)',
+                        color: newPrinter.nozzle === n ? '#8B5CF6' : '#94a3b8',
+                        outline: newPrinter.nozzle === n ? '1px solid rgba(139,92,246,0.4)' : '1px solid rgba(255,255,255,0.06)',
                       }}
                     >
                       {n}
@@ -461,9 +461,9 @@ export default function DashboardPage() {
                         onClick={() => toggleMaterial(mat)}
                         className="px-3.5 py-2 rounded-xl text-sm font-medium cursor-pointer transition-all border-none"
                         style={{
-                          background: active ? 'rgba(255,107,107,0.15)' : 'rgba(255,255,255,0.03)',
-                          color: active ? '#ff6b6b' : '#94a3b8',
-                          outline: active ? '1px solid rgba(255,107,107,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                          background: active ? 'rgba(34,197,94,0.15)' : 'rgba(255,255,255,0.03)',
+                          color: active ? '#22C55E' : '#94a3b8',
+                          outline: active ? '1px solid rgba(34,197,94,0.4)' : '1px solid rgba(255,255,255,0.06)',
                         }}
                       >
                         {mat}
@@ -476,7 +476,7 @@ export default function DashboardPage() {
               <button
                 type="submit"
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-[15px] border-none cursor-pointer transition-all hover:opacity-90 mt-2"
-                style={{ background: '#ff6b6b' }}
+                style={{ background: '#22C55E' }}
               >
                 Dodaj drukarkę
               </button>
