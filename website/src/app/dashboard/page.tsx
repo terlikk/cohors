@@ -182,7 +182,7 @@ const ENTERPRISE_FEATURES = [
   { name: 'Maintenance Tracker', desc: 'Godziny pracy, alerty serwisowe, auto-blokada' },
   { name: '∞ drukarek', desc: 'Bez limitu drukarek w Twojej flocie.' },
   { name: 'API publiczne', desc: 'Pełne API do integracji z dowolnym systemem.' },
-  { name: 'Self-hosted opcja', desc: 'Hostuj PrintFlow na własnym serwerze.' },
+  { name: 'Dedykowany support', desc: 'Priorytetowa pomoc techniczna + SLA.' },
 ]
 
 const FLOWPILOT_STEPS = [
