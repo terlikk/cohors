@@ -158,13 +158,40 @@ const DEMO_ORDERS: DemoOrder[] = [
   },
 ]
 
+const FREE_FEATURES = [
+  { name: 'Auto-wycena', desc: 'Ustaw swoją marżę (%), system obliczy cenę za klienta automatycznie: koszt materiału + czas druku + amortyzacja drukarki + Twoja marża' },
+  { name: 'Panel zamówień', desc: 'Accept/reject, status tracking' },
+  { name: 'Profil farmy + link + QR kod', desc: 'Twoja strona farmy widoczna dla klientów' },
+  { name: 'Marketplace', desc: 'Widoczność dla klientów' },
+]
+
 const PRO_FEATURES = [
-  { name: 'Auto-wycena AI', desc: 'Automatyczne kalkulowanie cen na podstawie modelu, materiału i czasu druku', tier: 'Pro' },
-  { name: 'Quality Control AI', desc: 'Wykrywanie błędów druku w czasie rzeczywistym z kamerą', tier: 'Pro' },
-  { name: 'Auto-scheduling', desc: 'Automatyczne planowanie kolejki druku na wszystkich drukarkach', tier: 'Pro' },
-  { name: 'API do integracji', desc: 'REST API do połączenia z Twoim systemem ERP lub sklepem', tier: 'Enterprise' },
-  { name: 'Custom branding', desc: 'Własna domena, logo i kolory na stronie farmy', tier: 'Enterprise' },
-  { name: 'Multi-location', desc: 'Zarządzanie wieloma lokalizacjami z jednego panelu', tier: 'Enterprise' },
+  { name: 'Fleet Control', desc: 'Zaznacz drukarki → wyślij plik do wszystkich naraz. Jedno kliknięcie = 10 drukarek drukuje ten sam model równolegle.' },
+  { name: 'Integracja API', desc: 'Połącz Klipper, OctoPrint, Bambu Lab, Prusa Connect. Auto-status, remote start/stop/pause.' },
+  { name: 'Live monitoring', desc: 'Kamery, progress %, temperatury, ETA w real-time. Podgląd każdej drukarki z jednego panelu.' },
+  { name: 'AI Quality Guard', desc: 'Model YOLO wykrywa spaghetti i warping. Auto-pause + alert. 97% accuracy.' },
+  { name: 'Smart scheduling', desc: 'Algorytm przypisuje zlecenia do optymalnej drukarki. Matching po materiale, nozzle, blacie.' },
+  { name: 'Stock management', desc: 'Zarządzanie filamentami. Auto-alert przy niskim stanie.' },
+  { name: 'Analytics', desc: 'Zarobki, success rate, popularne materiały, raporty.' },
+  { name: 'Do 20 drukarek', desc: 'Zarządzaj flotą do 20 drukarek z jednego panelu.' },
+]
+
+const ENTERPRISE_FEATURES = [
+  { name: 'Continuous Queue', desc: 'Drukarki pracują non-stop. Zero przestojów.' },
+  { name: 'Safety Rules', desc: 'Max wartość auto-accept, nowy klient = ręcznie, ABS = ręcznie, tryb nocny = tylko PLA' },
+  { name: 'Maintenance Tracker', desc: 'Godziny pracy, alerty serwisowe, auto-blokada' },
+  { name: '∞ drukarek', desc: 'Bez limitu drukarek w Twojej flocie.' },
+  { name: 'API publiczne', desc: 'Pełne API do integracji z dowolnym systemem.' },
+  { name: 'Self-hosted opcja', desc: 'Hostuj PrintFlow na własnym serwerze.' },
+]
+
+const FLOWPILOT_STEPS = [
+  { step: 1, title: 'Klient zamawia online' },
+  { step: 2, title: 'Auto-weryfikacja & akceptacja', desc: 'Safety rules konfigurowalne' },
+  { step: 3, title: 'Smart assign do drukarki' },
+  { step: 4, title: 'Auto-start + AI monitoring' },
+  { step: 5, title: 'Auto-eject + kolejny druk' },
+  { step: 6, title: 'Alert: \'Spakuj 5 wydruków\'' },
 ]
 
 function loadPrinters(): Printer[] {
@@ -511,41 +538,121 @@ export default function DashboardPage() {
 
           {/* AUTOMATYZACJA TAB */}
           {activeTab === 'automatyzacja' && (
-            <div>
-              <h2 className="text-xl font-bold text-white mb-2">Automatyzacja</h2>
-              <p className="text-slate-500 text-sm mb-8">Zaawansowane funkcje dostępne w planach Pro i Enterprise.</p>
+            <div className="flex flex-col gap-8">
+              <div>
+                <h2 className="text-xl font-bold text-white mb-2">Automatyzacja</h2>
+                <p className="text-slate-500 text-sm">Funkcje dostępne w Twoim planie i opcje rozbudowy.</p>
+              </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {PRO_FEATURES.map((feature, i) => (
-                  <div key={i} className="rounded-2xl p-5 relative overflow-hidden" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                    <div className="flex items-center gap-2 mb-2">
-                      <span
-                        className="px-2 py-0.5 rounded text-[10px] font-bold uppercase tracking-wider"
-                        style={{
-                          background: feature.tier === 'Pro' ? 'rgba(168,85,247,0.15)' : 'rgba(234,179,8,0.15)',
-                          color: feature.tier === 'Pro' ? '#a855f7' : '#eab308',
-                          border: `1px solid ${feature.tier === 'Pro' ? 'rgba(168,85,247,0.3)' : 'rgba(234,179,8,0.3)'}`,
-                        }}
-                      >
-                        {feature.tier}
-                      </span>
-                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#64748b" strokeWidth="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              {/* FREE TIER */}
+              <div className="rounded-2xl p-6" style={{ background: 'rgba(34,197,94,0.03)', border: '1px solid rgba(34,197,94,0.15)' }}>
+                <div className="flex items-center gap-3 mb-5">
+                  <span className="px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider" style={{ background: 'rgba(34,197,94,0.15)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.3)' }}>
+                    Free
+                  </span>
+                  <span className="text-slate-400 text-sm">W zestawie</span>
+                </div>
+                <div className="flex flex-col gap-3">
+                  {FREE_FEATURES.map((f, i) => (
+                    <div key={i} className="flex items-start gap-3">
+                      <span className="text-lg mt-0.5" style={{ color: '#22C55E' }}>✓</span>
+                      <div>
+                        <span className="text-white font-semibold text-[14px]">{f.name}</span>
+                        <p className="text-slate-500 text-[13px] mt-0.5">{f.desc}</p>
+                      </div>
                     </div>
-                    <h3 className="text-white font-semibold text-[15px] mb-1">{feature.name}</h3>
-                    <p className="text-slate-500 text-[13px] mb-4">{feature.desc}</p>
-                    <button
-                      onClick={() => alert('Plany Pro i Enterprise będą dostępne wkrótce!')}
-                      className="px-4 py-2 rounded-xl text-[13px] font-medium cursor-pointer transition-all border-none"
-                      style={{
-                        background: feature.tier === 'Pro' ? 'rgba(168,85,247,0.1)' : 'rgba(234,179,8,0.1)',
-                        color: feature.tier === 'Pro' ? '#a855f7' : '#eab308',
-                        border: `1px solid ${feature.tier === 'Pro' ? 'rgba(168,85,247,0.2)' : 'rgba(234,179,8,0.2)'}`,
-                      }}
-                    >
-                      Upgrade
-                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* PRO TIER */}
+              <div className="rounded-2xl p-6" style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)' }}>
+                      Pro
+                    </span>
+                    <span className="text-slate-400 text-sm">149 zł/msc — Zarządzanie flotą</span>
                   </div>
-                ))}
+                  <button
+                    onClick={() => alert('Plan Pro będzie dostępny wkrótce!')}
+                    className="px-5 py-2 rounded-xl text-[13px] font-semibold cursor-pointer transition-all border-none"
+                    style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.3)' }}
+                  >
+                    Upgrade to Pro
+                  </button>
+                </div>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {PRO_FEATURES.map((f, i) => (
+                    <div key={i} className="flex items-start gap-3 rounded-xl p-3" style={{ background: 'rgba(139,92,246,0.04)' }}>
+                      <svg className="mt-0.5 flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <div>
+                        <span className="text-white font-semibold text-[14px]">{f.name}</span>
+                        <p className="text-slate-500 text-[13px] mt-0.5">{f.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* ENTERPRISE TIER */}
+              <div className="rounded-2xl p-6 relative" style={{ background: 'rgba(34,197,94,0.03)', border: '1px solid rgba(34,197,94,0.25)', boxShadow: '0 0 30px rgba(34,197,94,0.08), 0 0 60px rgba(34,197,94,0.04)' }}>
+                <div className="flex items-center justify-between mb-5">
+                  <div className="flex items-center gap-3">
+                    <span className="px-3 py-1 rounded-lg text-[11px] font-bold uppercase tracking-wider" style={{ background: 'rgba(34,197,94,0.15)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.3)' }}>
+                      Enterprise
+                    </span>
+                    <span className="text-slate-400 text-sm">499 zł/msc — FlowPilot™ Full Autonomy</span>
+                  </div>
+                  <button
+                    onClick={() => alert('Plan Enterprise będzie dostępny wkrótce!')}
+                    className="px-5 py-2 rounded-xl text-[13px] font-semibold cursor-pointer transition-all border-none"
+                    style={{ background: 'rgba(34,197,94,0.15)', color: '#22C55E', border: '1px solid rgba(34,197,94,0.3)' }}
+                  >
+                    Upgrade to Enterprise
+                  </button>
+                </div>
+
+                {/* FlowPilot main description */}
+                <div className="rounded-xl p-5 mb-5" style={{ background: 'rgba(34,197,94,0.05)', border: '1px solid rgba(34,197,94,0.12)' }}>
+                  <div className="flex items-start gap-3 mb-4">
+                    <svg className="mt-0.5 flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                    <div>
+                      <span className="text-white font-bold text-[15px]">FlowPilot™</span>
+                      <p className="text-slate-400 text-[13px] mt-1 leading-relaxed">
+                        Twoja farma pracuje 24/7 bez Twojej interwencji. Klient zamawia → system weryfikuje plik → auto-akceptuje zlecenie → slicuje → przypisuje do optymalnej drukarki → startuje druk → AI pilnuje jakości → auto-eject po zakończeniu → startuje kolejny druk z kolejki. Jedyne co robisz = pakowanie i wysyłka.
+                      </p>
+                    </div>
+                  </div>
+
+                  {/* 6-step flow */}
+                  <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                    {FLOWPILOT_STEPS.map(s => (
+                      <div key={s.step} className="flex items-start gap-2.5 rounded-lg p-3" style={{ background: 'rgba(34,197,94,0.06)' }}>
+                        <span className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0 text-[12px] font-bold" style={{ background: 'rgba(34,197,94,0.2)', color: '#22C55E' }}>
+                          {s.step}
+                        </span>
+                        <div>
+                          <p className="text-white text-[13px] font-medium leading-tight">{s.title}</p>
+                          {s.desc && <p className="text-slate-500 text-[11px] mt-0.5">{s.desc}</p>}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                {/* Other enterprise features */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+                  {ENTERPRISE_FEATURES.map((f, i) => (
+                    <div key={i} className="flex items-start gap-3 rounded-xl p-3" style={{ background: 'rgba(34,197,94,0.04)' }}>
+                      <svg className="mt-0.5 flex-shrink-0" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><rect width="18" height="11" x="3" y="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                      <div>
+                        <span className="text-white font-semibold text-[14px]">{f.name}</span>
+                        <p className="text-slate-500 text-[13px] mt-0.5">{f.desc}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           )}
