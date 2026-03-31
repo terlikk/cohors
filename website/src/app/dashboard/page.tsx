@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
@@ -11,12 +11,34 @@ type OrderFilter = 'all' | OrderStatus
 
 interface Printer {
   id: string
+  farm_id: string
   name: string
   model: string
-  buildVolume: { x: number; y: number; z: number }
+  build_x: number
+  build_y: number
+  build_z: number
   nozzle: string
   materials: string[]
-  status: 'idle' | 'printing' | 'error'
+  status: string
+  created_at: string
+}
+
+interface Order {
+  id: string
+  order_number: string
+  client_email: string
+  farm_id: string
+  status: OrderStatus
+  file_names: string[]
+  material: string
+  color: string
+  quality: string
+  quantity: number
+  price_total: number
+  estimated_hours: number
+  notes: string | null
+  created_at: string
+  updated_at: string
 }
 
 const PRINTER_MODELS = ['Bambu X1C', 'Bambu P1S', 'Bambu A1', 'Prusa MK4', 'Prusa XL', 'Ender 3', 'Voron', 'Other']
@@ -194,21 +216,10 @@ const FLOWPILOT_STEPS = [
   { step: 6, title: 'Alert: \'Spakuj 5 wydruków\'' },
 ]
 
-function loadPrinters(): Printer[] {
-  if (typeof window === 'undefined') return []
-  try {
-    return JSON.parse(localStorage.getItem('printflow_printers') || '[]')
-  } catch {
-    return []
-  }
-}
-
-function savePrinters(printers: Printer[]) {
-  localStorage.setItem('printflow_printers', JSON.stringify(printers))
-}
-
 export default function DashboardPage() {
   const [user, setUser] = useState<User | null>(null)
+  const [farmId, setFarmId] = useState<string | null>(null)
+  const [farmSlug, setFarmSlug] = useState<string>('')
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<Tab>('drukarki')
   const router = useRouter()
@@ -228,17 +239,53 @@ export default function DashboardPage() {
     materials: [] as string[],
   })
 
+  // Order state
+  const [orders, setOrders] = useState<Order[]>([])
+  const [showDemo, setShowDemo] = useState(false)
+
   useEffect(() => {
-    supabase.auth.getUser().then(({ data: { user } }) => {
+    async function init() {
+      const { data: { user } } = await supabase.auth.getUser()
       if (!user) {
         router.push('/login')
-      } else {
-        setUser(user)
-        setPrinters(loadPrinters())
-        setLoading(false)
+        return
       }
-    })
-  }, [router, supabase.auth])
+      setUser(user)
+
+      // Fetch user's farm
+      const { data: farm } = await supabase
+        .from('farms')
+        .select('id, slug')
+        .eq('user_id', user.id)
+        .single()
+
+      if (farm) {
+        setFarmId(farm.id)
+        setFarmSlug(farm.slug)
+
+        // Fetch printers
+        const { data: printerData } = await supabase
+          .from('printers')
+          .select('*')
+          .eq('farm_id', farm.id)
+          .order('created_at', { ascending: true })
+
+        if (printerData) setPrinters(printerData)
+
+        // Fetch orders
+        const { data: orderData } = await supabase
+          .from('orders')
+          .select('*')
+          .eq('farm_id', farm.id)
+          .order('created_at', { ascending: false })
+
+        if (orderData) setOrders(orderData)
+      }
+
+      setLoading(false)
+    }
+    init()
+  }, [router, supabase])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -254,32 +301,43 @@ export default function DashboardPage() {
     }))
   }
 
-  function handleAddPrinter(e: React.FormEvent) {
+  async function handleAddPrinter(e: React.FormEvent) {
     e.preventDefault()
-    const printer: Printer = {
-      id: crypto.randomUUID(),
-      name: newPrinter.name,
-      model: newPrinter.model,
-      buildVolume: {
-        x: parseInt(newPrinter.buildX) || 0,
-        y: parseInt(newPrinter.buildY) || 0,
-        z: parseInt(newPrinter.buildZ) || 0,
-      },
-      nozzle: newPrinter.nozzle,
-      materials: newPrinter.materials,
-      status: 'idle',
+    if (!farmId) return
+
+    const { data, error } = await supabase
+      .from('printers')
+      .insert({
+        farm_id: farmId,
+        name: newPrinter.name,
+        model: newPrinter.model,
+        build_x: parseInt(newPrinter.buildX) || 0,
+        build_y: parseInt(newPrinter.buildY) || 0,
+        build_z: parseInt(newPrinter.buildZ) || 0,
+        nozzle: newPrinter.nozzle,
+        materials: newPrinter.materials,
+        status: 'idle',
+      })
+      .select()
+      .single()
+
+    if (error) {
+      alert('Błąd dodawania drukarki: ' + error.message)
+      return
     }
-    const updated = [...printers, printer]
-    setPrinters(updated)
-    savePrinters(updated)
+
+    setPrinters(prev => [...prev, data])
     setShowAddModal(false)
     setNewPrinter({ name: '', model: PRINTER_MODELS[0], buildX: '256', buildY: '256', buildZ: '256', nozzle: '0.4', materials: [] })
   }
 
-  function removePrinter(id: string) {
-    const updated = printers.filter(p => p.id !== id)
-    setPrinters(updated)
-    savePrinters(updated)
+  async function removePrinter(id: string) {
+    const { error } = await supabase.from('printers').delete().eq('id', id)
+    if (error) {
+      alert('Błąd usuwania drukarki: ' + error.message)
+      return
+    }
+    setPrinters(prev => prev.filter(p => p.id !== id))
   }
 
   if (loading) {
@@ -293,6 +351,33 @@ export default function DashboardPage() {
   const farmName = user?.user_metadata?.farm_name || 'Twoja farma'
   const userCity = user?.user_metadata?.city || ''
   const inputStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
+
+  // Orders: show real or demo
+  const hasRealOrders = orders.length > 0
+  const displayOrders = hasRealOrders && !showDemo
+
+  // Order counts for filters
+  const orderCounts: Record<OrderStatus, number> = { nowe: 0, drukuje: 0, gotowe: 0, wysłane: 0 }
+  if (displayOrders) {
+    orders.forEach(o => {
+      if (orderCounts[o.status] !== undefined) orderCounts[o.status]++
+    })
+  } else if (showDemo || !hasRealOrders) {
+    DEMO_ORDERS.forEach(o => orderCounts[o.status]++)
+  }
+
+  function formatOrderDate(dateStr: string) {
+    const d = new Date(dateStr)
+    const now = new Date()
+    const diffMs = now.getTime() - d.getTime()
+    const diffMin = Math.floor(diffMs / 60000)
+    if (diffMin < 1) return 'teraz'
+    if (diffMin < 60) return `${diffMin} min temu`
+    const diffH = Math.floor(diffMin / 60)
+    if (diffH < 24) return `${diffH}h temu`
+    const diffD = Math.floor(diffH / 24)
+    return `${diffD}d temu`
+  }
 
   return (
     <div className="min-h-screen" style={{ background: '#0f172a', fontFamily: "'Inter', sans-serif" }}>
@@ -371,7 +456,7 @@ export default function DashboardPage() {
               ) : (
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                   {printers.map(printer => {
-                    const st = STATUS_STYLES[printer.status]
+                    const st = STATUS_STYLES[printer.status] || STATUS_STYLES.idle
                     return (
                       <div key={printer.id} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
                         <div className="flex items-start justify-between mb-3">
@@ -384,7 +469,7 @@ export default function DashboardPage() {
                           </span>
                         </div>
                         <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-slate-400 mb-3">
-                          <span>Volume: {printer.buildVolume.x}×{printer.buildVolume.y}×{printer.buildVolume.z} mm</span>
+                          <span>Volume: {printer.build_x}×{printer.build_y}×{printer.build_z} mm</span>
                           <span>Nozzle: {printer.nozzle} mm</span>
                         </div>
                         <div className="flex flex-wrap gap-1.5 mb-3">
@@ -410,21 +495,43 @@ export default function DashboardPage() {
 
           {/* ZAMÓWIENIA TAB */}
           {activeTab === 'zamowienia' && (() => {
-            const counts: Record<OrderStatus, number> = { nowe: 0, drukuje: 0, gotowe: 0, wysłane: 0 }
-            DEMO_ORDERS.forEach(o => counts[o.status]++)
-            const filtered = orderFilter === 'all' ? DEMO_ORDERS : DEMO_ORDERS.filter(o => o.status === orderFilter)
             const filters: { id: OrderFilter; label: string; count?: number }[] = [
               { id: 'all', label: 'Wszystkie' },
-              { id: 'nowe', label: 'Nowe', count: counts.nowe },
-              { id: 'drukuje', label: 'Drukuje', count: counts.drukuje },
-              { id: 'gotowe', label: 'Gotowe', count: counts.gotowe },
-              { id: 'wysłane', label: 'Wysłane', count: counts.wysłane },
+              { id: 'nowe', label: 'Nowe', count: orderCounts.nowe },
+              { id: 'drukuje', label: 'Drukuje', count: orderCounts.drukuje },
+              { id: 'gotowe', label: 'Gotowe', count: orderCounts.gotowe },
+              { id: 'wysłane', label: 'Wysłane', count: orderCounts.wysłane },
             ]
 
             return (
               <div>
-                <h2 className="text-xl font-bold text-white mb-2">Zamówienia</h2>
-                <p className="text-slate-500 text-sm mb-6">Wszystkie przychodzące zlecenia od klientów.</p>
+                <div className="flex items-center justify-between mb-2">
+                  <h2 className="text-xl font-bold text-white">Zamówienia</h2>
+                  {!hasRealOrders && (
+                    <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.2)' }}>
+                      Dane demo
+                    </span>
+                  )}
+                  {hasRealOrders && (
+                    <button
+                      onClick={() => setShowDemo(!showDemo)}
+                      className="text-xs px-3 py-1.5 rounded-lg cursor-pointer transition-all border-none"
+                      style={{
+                        background: showDemo ? 'rgba(234,179,8,0.15)' : 'rgba(255,255,255,0.05)',
+                        color: showDemo ? '#eab308' : '#94a3b8',
+                      }}
+                    >
+                      {showDemo ? 'Pokaż prawdziwe zamówienia' : 'Pokaż demo zamówienia'}
+                    </button>
+                  )}
+                </div>
+                <p className="text-slate-500 text-sm mb-6">
+                  {displayOrders
+                    ? 'Wszystkie przychodzące zlecenia od klientów.'
+                    : hasRealOrders
+                      ? 'Przykładowe zamówienia demo.'
+                      : 'Brak zamówień. Poniżej dane demo — zamówienia pojawią się, gdy klienci złożą zlecenia.'}
+                </p>
 
                 {/* Filter bar */}
                 <div className="flex gap-2 mb-6 flex-wrap">
@@ -452,86 +559,133 @@ export default function DashboardPage() {
                   })}
                 </div>
 
-                {/* Order cards */}
-                <div className="flex flex-col gap-4">
-                  {filtered.map(order => {
-                    const st = ORDER_STATUS_STYLES[order.status]
-                    return (
-                      <div key={order.id} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                        <div className="flex items-start justify-between mb-3">
-                          <div>
-                            <div className="flex items-center gap-3 mb-1">
-                              <span className="text-white font-semibold text-[15px]">{order.orderNumber}</span>
-                              <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider" style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
-                                {st.label}{order.progress !== undefined ? ` ${order.progress}%` : ''}
-                              </span>
+                {/* Real orders */}
+                {displayOrders && (
+                  <div className="flex flex-col gap-4">
+                    {orders
+                      .filter(o => orderFilter === 'all' || o.status === orderFilter)
+                      .map(order => {
+                        const st = ORDER_STATUS_STYLES[order.status] || ORDER_STATUS_STYLES.nowe
+                        return (
+                          <div key={order.id} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div className="flex items-start justify-between mb-3">
+                              <div>
+                                <div className="flex items-center gap-3 mb-1">
+                                  <span className="text-white font-semibold text-[15px]">{order.order_number}</span>
+                                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider" style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
+                                    {st.label}
+                                  </span>
+                                </div>
+                                <p className="text-slate-400 text-[13px]">{order.client_email}</p>
+                              </div>
+                              <span className="text-slate-600 text-[12px] whitespace-nowrap">{formatOrderDate(order.created_at)}</span>
                             </div>
-                            <p className="text-slate-400 text-[13px]">{order.client}</p>
-                          </div>
-                          <span className="text-slate-600 text-[12px] whitespace-nowrap">{order.timestamp}</span>
-                        </div>
-
-                        <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-400 mb-3">
-                          <span className="flex items-center gap-1.5">
-                            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/></svg>
-                            {order.files.join(' + ')}
-                          </span>
-                          <span>{order.quantity} szt × {order.material} {order.color} {order.quality}</span>
-                          <span className="text-white font-semibold">{order.price}</span>
-                        </div>
-
-                        {(order.printer || order.eta || order.tracking) && (
-                          <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-500 mb-3">
-                            {order.printer && (
+                            <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-400 mb-3">
                               <span className="flex items-center gap-1.5">
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                                {order.printer}
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                {order.file_names.join(' + ')}
                               </span>
-                            )}
-                            {order.eta && <span>ETA: {order.eta}</span>}
-                            {order.tracking && (
-                              <span className="flex items-center gap-1.5" style={{ color: '#a855f7' }}>
-                                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="13" x="4" y="8" rx="2"/><path d="m22 8-10 7L2 8"/></svg>
-                                {order.tracking}
-                              </span>
-                            )}
-                          </div>
-                        )}
-
-                        {order.status === 'drukuje' && order.progress !== undefined && (
-                          <div className="mb-3">
-                            <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(59,130,246,0.1)' }}>
-                              <div className="h-full rounded-full transition-all" style={{ width: `${order.progress}%`, background: '#3b82f6' }} />
+                              <span>{order.quantity} szt × {order.material} {order.color} {order.quality}</span>
+                              <span className="text-white font-semibold">{order.price_total.toFixed(2)} zł</span>
                             </div>
+                            {order.notes && (
+                              <p className="text-slate-500 text-[12px] mb-2">Notatki: {order.notes}</p>
+                            )}
                           </div>
-                        )}
-
-                        {order.actions.length > 0 && (
-                          <div className="flex gap-2 mt-1">
-                            {order.actions.map(action => {
-                              const isAccept = action === 'Akceptuj'
-                              const isReject = action === 'Odrzuć'
-                              const isSend = action === 'Wyślij'
-                              return (
-                                <button
-                                  key={action}
-                                  className="px-4 py-2 rounded-xl text-[13px] font-medium cursor-pointer transition-all border-none"
-                                  style={{
-                                    background: isAccept || isSend ? '#22C55E' : isReject ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.1)',
-                                    color: isAccept || isSend ? 'white' : isReject ? '#f87171' : '#a78bfa',
-                                    border: isReject ? '1px solid rgba(239,68,68,0.2)' : (!isAccept && !isSend) ? '1px solid rgba(139,92,246,0.2)' : 'none',
-                                  }}
-                                >
-                                  {action}
-                                </button>
-                              )
-                            })}
-                          </div>
-                        )}
+                        )
+                      })}
+                    {orders.filter(o => orderFilter === 'all' || o.status === orderFilter).length === 0 && (
+                      <div className="text-center py-10">
+                        <p className="text-slate-500 text-sm">Brak zamówień z tym statusem.</p>
                       </div>
-                    )
-                  })}
-                </div>
+                    )}
+                  </div>
+                )}
+
+                {/* Demo orders fallback */}
+                {!displayOrders && (
+                  <div className="flex flex-col gap-4">
+                    {DEMO_ORDERS
+                      .filter(o => orderFilter === 'all' || o.status === orderFilter)
+                      .map(order => {
+                        const st = ORDER_STATUS_STYLES[order.status]
+                        return (
+                          <div key={order.id} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                            <div className="flex items-start justify-between mb-3">
+                              <div>
+                                <div className="flex items-center gap-3 mb-1">
+                                  <span className="text-white font-semibold text-[15px]">{order.orderNumber}</span>
+                                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider" style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
+                                    {st.label}{order.progress !== undefined ? ` ${order.progress}%` : ''}
+                                  </span>
+                                </div>
+                                <p className="text-slate-400 text-[13px]">{order.client}</p>
+                              </div>
+                              <span className="text-slate-600 text-[12px] whitespace-nowrap">{order.timestamp}</span>
+                            </div>
+
+                            <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-400 mb-3">
+                              <span className="flex items-center gap-1.5">
+                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/></svg>
+                                {order.files.join(' + ')}
+                              </span>
+                              <span>{order.quantity} szt × {order.material} {order.color} {order.quality}</span>
+                              <span className="text-white font-semibold">{order.price}</span>
+                            </div>
+
+                            {(order.printer || order.eta || order.tracking) && (
+                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-500 mb-3">
+                                {order.printer && (
+                                  <span className="flex items-center gap-1.5">
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
+                                    {order.printer}
+                                  </span>
+                                )}
+                                {order.eta && <span>ETA: {order.eta}</span>}
+                                {order.tracking && (
+                                  <span className="flex items-center gap-1.5" style={{ color: '#a855f7' }}>
+                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="13" x="4" y="8" rx="2"/><path d="m22 8-10 7L2 8"/></svg>
+                                    {order.tracking}
+                                  </span>
+                                )}
+                              </div>
+                            )}
+
+                            {order.status === 'drukuje' && order.progress !== undefined && (
+                              <div className="mb-3">
+                                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(59,130,246,0.1)' }}>
+                                  <div className="h-full rounded-full transition-all" style={{ width: `${order.progress}%`, background: '#3b82f6' }} />
+                                </div>
+                              </div>
+                            )}
+
+                            {order.actions.length > 0 && (
+                              <div className="flex gap-2 mt-1">
+                                {order.actions.map(action => {
+                                  const isAccept = action === 'Akceptuj'
+                                  const isReject = action === 'Odrzuć'
+                                  const isSend = action === 'Wyślij'
+                                  return (
+                                    <button
+                                      key={action}
+                                      className="px-4 py-2 rounded-xl text-[13px] font-medium cursor-pointer transition-all border-none"
+                                      style={{
+                                        background: isAccept || isSend ? '#22C55E' : isReject ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.1)',
+                                        color: isAccept || isSend ? 'white' : isReject ? '#f87171' : '#a78bfa',
+                                        border: isReject ? '1px solid rgba(239,68,68,0.2)' : (!isAccept && !isSend) ? '1px solid rgba(139,92,246,0.2)' : 'none',
+                                      }}
+                                    >
+                                      {action}
+                                    </button>
+                                  )
+                                })}
+                              </div>
+                            )}
+                          </div>
+                        )
+                      })}
+                  </div>
+                )}
               </div>
             )
           })()}
@@ -689,7 +843,13 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <label className="block text-slate-500 text-[12px] font-medium mb-1 uppercase tracking-wider">Link do strony farmy</label>
-                    <p className="text-slate-400 text-[15px]">printflow.pl/farm/{farmName.toLowerCase().replace(/\s+/g, '-')} <span className="text-[12px] text-slate-600">(wkrótce)</span></p>
+                    {farmSlug ? (
+                      <a href={`/farm/${farmSlug}`} className="text-[15px] no-underline hover:underline" style={{ color: '#22C55E' }}>
+                        /farm/{farmSlug}
+                      </a>
+                    ) : (
+                      <p className="text-slate-400 text-[15px]">—</p>
+                    )}
                   </div>
                   <div>
                     <label className="block text-slate-500 text-[12px] font-medium mb-1 uppercase tracking-wider">Drukarki</label>

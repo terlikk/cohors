@@ -1,7 +1,8 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useSearchParams } from 'next/navigation'
+import { createClient } from '@/lib/supabase'
 
 const MATERIALS_LIST = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon'] as const
 
@@ -22,30 +23,31 @@ function getDiscount(qty: number): number {
 }
 
 function calcPrintTimeHours(quantity: number, printers: number): number {
-  return Math.ceil(quantity / printers) * 2
+  return Math.ceil(quantity / Math.max(printers, 1)) * 2
 }
 
 interface Farm {
+  id: string
   name: string
+  slug: string
   city: string
-  rating: number
-  reviews: number
+  rating_avg: number | null
+  rating_count: number | null
   materials: string[]
-  printers: number
-  priceRange: string
+  printerCount: number
 }
 
 const DEMO_FARMS: Farm[] = [
-  { name: '3DPrint Warszawa', city: 'Warszawa', rating: 4.9, reviews: 234, materials: ['PLA', 'PETG', 'ABS', 'TPU'], printers: 8, priceRange: '19-45 zł' },
-  { name: 'MakerHive', city: 'Kraków', rating: 4.7, reviews: 189, materials: ['PLA', 'PETG', 'ASA', 'Nylon'], printers: 12, priceRange: '22-55 zł' },
-  { name: 'PrintLab Pro', city: 'Wrocław', rating: 4.8, reviews: 156, materials: ['PLA', 'PETG', 'ABS'], printers: 5, priceRange: '15-38 zł' },
-  { name: 'NanoForge', city: 'Gdańsk', rating: 4.6, reviews: 98, materials: ['PLA', 'PETG', 'TPU', 'Nylon', 'PC'], printers: 15, priceRange: '25-65 zł' },
-  { name: 'Drukuj.pl', city: 'Poznań', rating: 4.5, reviews: 312, materials: ['PLA', 'PETG'], printers: 3, priceRange: '12-30 zł' },
-  { name: '3D Masters', city: 'Łódź', rating: 4.4, reviews: 87, materials: ['PLA', 'ABS', 'ASA'], printers: 6, priceRange: '18-42 zł' },
-  { name: 'PrintPoint', city: 'Katowice', rating: 4.8, reviews: 201, materials: ['PLA', 'PETG', 'TPU', 'ABS'], printers: 10, priceRange: '20-50 zł' },
-  { name: 'FabLab Szczecin', city: 'Szczecin', rating: 4.3, reviews: 65, materials: ['PLA', 'PETG', 'Nylon'], printers: 4, priceRange: '16-35 zł' },
-  { name: 'MegaPrint', city: 'Lublin', rating: 4.6, reviews: 143, materials: ['PLA', 'PETG', 'ABS', 'TPU', 'ASA'], printers: 9, priceRange: '17-48 zł' },
-  { name: 'QuickPrint24', city: 'Bydgoszcz', rating: 4.2, reviews: 52, materials: ['PLA', 'PETG'], printers: 2, priceRange: '14-28 zł' },
+  { id: 'd1', name: '3DPrint Warszawa', slug: '3dprint-warszawa', city: 'Warszawa', rating_avg: 4.9, rating_count: 234, materials: ['PLA', 'PETG', 'ABS', 'TPU'], printerCount: 8 },
+  { id: 'd2', name: 'MakerHive', slug: 'makerhive', city: 'Kraków', rating_avg: 4.7, rating_count: 189, materials: ['PLA', 'PETG', 'ASA', 'Nylon'], printerCount: 12 },
+  { id: 'd3', name: 'PrintLab Pro', slug: 'printlab-pro', city: 'Wrocław', rating_avg: 4.8, rating_count: 156, materials: ['PLA', 'PETG', 'ABS'], printerCount: 5 },
+  { id: 'd4', name: 'NanoForge', slug: 'nanoforge', city: 'Gdańsk', rating_avg: 4.6, rating_count: 98, materials: ['PLA', 'PETG', 'TPU', 'Nylon', 'PC'], printerCount: 15 },
+  { id: 'd5', name: 'Drukuj.pl', slug: 'drukuj-pl', city: 'Poznań', rating_avg: 4.5, rating_count: 312, materials: ['PLA', 'PETG'], printerCount: 3 },
+  { id: 'd6', name: '3D Masters', slug: '3d-masters', city: 'Łódź', rating_avg: 4.4, rating_count: 87, materials: ['PLA', 'ABS', 'ASA'], printerCount: 6 },
+  { id: 'd7', name: 'PrintPoint', slug: 'printpoint', city: 'Katowice', rating_avg: 4.8, rating_count: 201, materials: ['PLA', 'PETG', 'TPU', 'ABS'], printerCount: 10 },
+  { id: 'd8', name: 'FabLab Szczecin', slug: 'fablab-szczecin', city: 'Szczecin', rating_avg: 4.3, rating_count: 65, materials: ['PLA', 'PETG', 'Nylon'], printerCount: 4 },
+  { id: 'd9', name: 'MegaPrint', slug: 'megaprint', city: 'Lublin', rating_avg: 4.6, rating_count: 143, materials: ['PLA', 'PETG', 'ABS', 'TPU', 'ASA'], printerCount: 9 },
+  { id: 'd10', name: 'QuickPrint24', slug: 'quickprint24', city: 'Bydgoszcz', rating_avg: 4.2, rating_count: 52, materials: ['PLA', 'PETG'], printerCount: 2 },
 ]
 
 function Stars({ rating }: { rating: number }) {
@@ -75,29 +77,149 @@ export default function MarketplacePage() {
   const [citySearch, setCitySearch] = useState('')
   const [minRating, setMinRating] = useState('0')
   const [sortBy, setSortBy] = useState('rating')
+  const [farms, setFarms] = useState<Farm[]>([])
+  const [isDemo, setIsDemo] = useState(false)
+  const [loadingFarms, setLoadingFarms] = useState(true)
+  const [orderingFarmId, setOrderingFarmId] = useState<string | null>(null)
+  const [orderConfirmation, setOrderConfirmation] = useState<string | null>(null)
+
+  useEffect(() => {
+    async function loadFarms() {
+      const supabase = createClient()
+
+      // Fetch active farms with their printers
+      const { data: farmsData } = await supabase
+        .from('farms')
+        .select('id, name, slug, city, rating_avg, rating_count')
+        .eq('is_active', true)
+
+      if (farmsData && farmsData.length > 0) {
+        // Fetch printers for all farms to get materials and counts
+        const farmIds = farmsData.map(f => f.id)
+        const { data: printersData } = await supabase
+          .from('printers')
+          .select('farm_id, materials')
+          .in('farm_id', farmIds)
+
+        const farmsList: Farm[] = farmsData.map(f => {
+          const farmPrinters = printersData?.filter(p => p.farm_id === f.id) || []
+          const allMaterials = [...new Set(farmPrinters.flatMap(p => p.materials || []))]
+          return {
+            id: f.id,
+            name: f.name,
+            slug: f.slug,
+            city: f.city,
+            rating_avg: f.rating_avg,
+            rating_count: f.rating_count,
+            materials: allMaterials,
+            printerCount: farmPrinters.length,
+          }
+        })
+
+        setFarms(farmsList)
+        setIsDemo(false)
+      } else {
+        setFarms(DEMO_FARMS)
+        setIsDemo(true)
+      }
+      setLoadingFarms(false)
+    }
+    loadFarms()
+  }, [])
+
+  async function handleOrder(farm: Farm) {
+    if (farm.id.startsWith('d')) {
+      // Demo farm — can't place real order
+      alert('To jest farma demo. Zarejestruj swoją farmę, aby przyjmować zamówienia!')
+      return
+    }
+
+    setOrderingFarmId(farm.id)
+    const supabase = createClient()
+
+    const orderNumber = `PF-2026-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`
+    const basePrice = urlMaterial ? (BASE_PRICES[urlMaterial] ?? 45) : 45
+    const discount = getDiscount(quantity)
+    const totalPrice = basePrice * quantity * (1 - discount)
+    const printTimeH = calcPrintTimeHours(quantity, farm.printerCount)
+
+    const { data: userData } = await supabase.auth.getUser()
+    const clientEmail = userData?.user?.email || 'anonim@printflow.pl'
+
+    const { error } = await supabase.from('orders').insert({
+      order_number: orderNumber,
+      client_email: clientEmail,
+      farm_id: farm.id,
+      status: 'nowe',
+      file_names: urlFiles ? urlFiles.split(',') : [],
+      material: urlMaterial || 'PLA',
+      color: urlColor || 'Czarny',
+      quality: urlQuality || 'Standard (0.2mm)',
+      quantity,
+      price_total: totalPrice,
+      estimated_hours: printTimeH,
+      notes: urlInfill ? `Wypełnienie: ${urlInfill}` : null,
+    })
+
+    setOrderingFarmId(null)
+
+    if (error) {
+      alert('Błąd składania zamówienia: ' + error.message)
+      return
+    }
+
+    setOrderConfirmation(orderNumber)
+  }
 
   const inputStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
 
-  const filtered = DEMO_FARMS
+  const filtered = farms
     .filter(f => {
-      if (hasOrderParams && urlMaterial && !f.materials.includes(urlMaterial)) return false
+      if (hasOrderParams && urlMaterial && f.materials.length > 0 && !f.materials.includes(urlMaterial)) return false
       if (citySearch && !f.city.toLowerCase().includes(citySearch.toLowerCase())) return false
-      if (parseFloat(minRating) > 0 && f.rating < parseFloat(minRating)) return false
+      if (parseFloat(minRating) > 0 && (f.rating_avg || 0) < parseFloat(minRating)) return false
       return true
     })
     .sort((a, b) => {
-      if (sortBy === 'rating') return b.rating - a.rating
-      if (sortBy === 'printers') return b.printers - a.printers
-      if (sortBy === 'price') {
-        if (!hasOrderParams || !urlMaterial) return 0
-        const basePrice = BASE_PRICES[urlMaterial] ?? 45
-        const discount = getDiscount(quantity)
-        const priceA = basePrice * quantity * (1 - discount)
-        const priceB = basePrice * quantity * (1 - discount)
-        return priceA - priceB
-      }
+      if (sortBy === 'rating') return (b.rating_avg || 0) - (a.rating_avg || 0)
+      if (sortBy === 'printers') return b.printerCount - a.printerCount
       return 0
     })
+
+  // Order confirmation modal
+  if (orderConfirmation) {
+    return (
+      <div className="min-h-screen flex items-center justify-center" style={{ background: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
+        <div className="text-center max-w-md mx-auto px-6">
+          <div className="w-20 h-20 rounded-full flex items-center justify-center mx-auto mb-6" style={{ background: 'rgba(34,197,94,0.15)' }}>
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
+          </div>
+          <h1 className="text-2xl font-bold text-white mb-2">Zamówienie złożone!</h1>
+          <p className="text-slate-400 mb-4">Twoje zamówienie zostało przekazane do farmy.</p>
+          <div className="rounded-xl p-4 mb-6" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+            <p className="text-xs uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.4)' }}>Numer zamówienia</p>
+            <p className="text-xl font-bold" style={{ color: '#22C55E' }}>{orderConfirmation}</p>
+          </div>
+          <div className="flex gap-3 justify-center">
+            <a
+              href="/marketplace"
+              className="px-5 py-2.5 rounded-xl text-sm font-medium no-underline transition-all"
+              style={{ background: 'rgba(255,255,255,0.05)', color: '#94a3b8', border: '1px solid rgba(255,255,255,0.06)' }}
+            >
+              Wróć do marketplace
+            </a>
+            <a
+              href="/upload"
+              className="px-5 py-2.5 rounded-xl text-sm font-medium text-white no-underline transition-all"
+              style={{ background: '#22C55E' }}
+            >
+              Nowe zamówienie
+            </a>
+          </div>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen" style={{ background: '#0f172a', fontFamily: 'Inter, system-ui, sans-serif' }}>
@@ -124,11 +246,18 @@ export default function MarketplacePage() {
               PrintFlow
             </span>
           </div>
-          {urlFiles && (
-            <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
-              Pliki: {urlFiles}
-            </div>
-          )}
+          <div className="flex items-center gap-3">
+            {isDemo && (
+              <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.2)' }}>
+                Dane demo
+              </span>
+            )}
+            {urlFiles && (
+              <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                Pliki: {urlFiles}
+              </div>
+            )}
+          </div>
         </div>
       </header>
 
@@ -172,7 +301,6 @@ export default function MarketplacePage() {
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           }}
         >
-          {/* City search */}
           <div>
             <label className="block text-xs mb-1.5 font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Miasto
@@ -187,7 +315,6 @@ export default function MarketplacePage() {
             />
           </div>
 
-          {/* Min rating */}
           <div>
             <label className="block text-xs mb-1.5 font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Min. ocena
@@ -206,7 +333,6 @@ export default function MarketplacePage() {
             </select>
           </div>
 
-          {/* Sort by */}
           <div>
             <label className="block text-xs mb-1.5 font-medium" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Sortuj wg
@@ -225,7 +351,7 @@ export default function MarketplacePage() {
 
         {/* Results count */}
         <p className="text-sm mb-4" style={{ color: 'rgba(255,255,255,0.4)' }}>
-          {filtered.length} {filtered.length === 1 ? 'farma' : filtered.length < 5 ? 'farmy' : 'farm'}
+          {loadingFarms ? 'Ładowanie...' : `${filtered.length} ${filtered.length === 1 ? 'farma' : filtered.length < 5 ? 'farmy' : 'farm'}`}
         </p>
 
         {/* Farm cards grid */}
@@ -235,16 +361,19 @@ export default function MarketplacePage() {
             const discount = getDiscount(quantity)
             const totalPrice = basePrice * quantity * (1 - discount)
             const unitPrice = totalPrice / quantity
-            const printTimeH = calcPrintTimeHours(quantity, farm.printers)
+            const printTimeH = calcPrintTimeHours(quantity, farm.printerCount)
 
             const expressTime = Math.ceil(printTimeH * 0.6)
             const expressPrice = totalPrice * 1.3
             const rushTime = Math.ceil(printTimeH * 0.4)
             const rushPrice = totalPrice * 1.5
 
+            const rating = farm.rating_avg || 0
+            const reviews = farm.rating_count || 0
+
             return (
               <div
-                key={farm.name}
+                key={farm.id}
                 className="rounded-xl p-5 transition-all duration-200 relative"
                 style={{
                   background: 'rgba(255,255,255,0.02)',
@@ -272,7 +401,9 @@ export default function MarketplacePage() {
                 {/* Farm name and city */}
                 <div className="flex items-start justify-between mb-3 mt-1">
                   <div>
-                    <h3 className="font-semibold text-white text-lg">{farm.name}</h3>
+                    <a href={`/farm/${farm.slug}`} className="no-underline">
+                      <h3 className="font-semibold text-white text-lg hover:underline">{farm.name}</h3>
+                    </a>
                     <p className="text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
                       <svg className="inline-block mr-1 -mt-0.5" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z" />
@@ -284,28 +415,32 @@ export default function MarketplacePage() {
                 </div>
 
                 {/* Rating */}
-                <div className="flex items-center gap-2 mb-3">
-                  <Stars rating={farm.rating} />
-                  <span className="text-sm font-medium text-white">{farm.rating}</span>
-                  <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>({farm.reviews} opinii)</span>
-                </div>
+                {rating > 0 && (
+                  <div className="flex items-center gap-2 mb-3">
+                    <Stars rating={rating} />
+                    <span className="text-sm font-medium text-white">{rating.toFixed(1)}</span>
+                    <span className="text-xs" style={{ color: 'rgba(255,255,255,0.3)' }}>({reviews} opinii)</span>
+                  </div>
+                )}
 
                 {/* Materials */}
-                <div className="flex flex-wrap gap-1.5 mb-3">
-                  {farm.materials.map(m => (
-                    <span
-                      key={m}
-                      className="text-xs px-2 py-0.5 rounded-full font-medium"
-                      style={{
-                        background: hasOrderParams && m === urlMaterial ? 'rgba(34,197,94,0.15)' : 'rgba(139,92,246,0.15)',
-                        color: hasOrderParams && m === urlMaterial ? '#22C55E' : 'rgba(139,92,246,1)',
-                        border: `1px solid ${hasOrderParams && m === urlMaterial ? 'rgba(34,197,94,0.3)' : 'rgba(139,92,246,0.2)'}`,
-                      }}
-                    >
-                      {m}
-                    </span>
-                  ))}
-                </div>
+                {farm.materials.length > 0 && (
+                  <div className="flex flex-wrap gap-1.5 mb-3">
+                    {farm.materials.map(m => (
+                      <span
+                        key={m}
+                        className="text-xs px-2 py-0.5 rounded-full font-medium"
+                        style={{
+                          background: hasOrderParams && m === urlMaterial ? 'rgba(34,197,94,0.15)' : 'rgba(139,92,246,0.15)',
+                          color: hasOrderParams && m === urlMaterial ? '#22C55E' : 'rgba(139,92,246,1)',
+                          border: `1px solid ${hasOrderParams && m === urlMaterial ? 'rgba(34,197,94,0.3)' : 'rgba(139,92,246,0.2)'}`,
+                        }}
+                      >
+                        {m}
+                      </span>
+                    ))}
+                  </div>
+                )}
 
                 {/* Printers count */}
                 <div className="flex items-center gap-1.5 mb-3 text-sm" style={{ color: 'rgba(255,255,255,0.4)' }}>
@@ -314,13 +449,12 @@ export default function MarketplacePage() {
                     <path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2" />
                     <rect x="6" y="14" width="12" height="8" />
                   </svg>
-                  {farm.printers} {farm.printers === 1 ? 'drukarka' : farm.printers < 5 ? 'drukarki' : 'drukarek'}
+                  {farm.printerCount} {farm.printerCount === 1 ? 'drukarka' : farm.printerCount < 5 ? 'drukarki' : 'drukarek'}
                 </div>
 
                 {/* Order-specific info */}
                 {hasOrderParams && (
                   <div className="mb-4 space-y-2">
-                    {/* Estimated time */}
                     <div
                       className="rounded-lg px-3 py-2 flex items-center gap-2 text-sm"
                       style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}
@@ -329,12 +463,11 @@ export default function MarketplacePage() {
                       <span style={{ color: 'rgba(255,255,255,0.7)' }}>
                         Szacowany czas: <span className="font-semibold text-white">~{printTimeH}h</span>
                         <span className="text-xs ml-1" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                          ({farm.printers} drukarek równolegle)
+                          ({farm.printerCount} drukarek równolegle)
                         </span>
                       </span>
                     </div>
 
-                    {/* Price estimate */}
                     <div
                       className="rounded-lg px-3 py-2 flex items-center justify-between text-sm"
                       style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)' }}
@@ -358,7 +491,6 @@ export default function MarketplacePage() {
                       )}
                     </div>
 
-                    {/* ETA options */}
                     <div className="flex gap-2">
                       <div
                         className="flex-1 rounded-lg px-2 py-1.5 text-center text-xs"
@@ -390,19 +522,21 @@ export default function MarketplacePage() {
 
                 {/* CTA button */}
                 <button
+                  onClick={() => handleOrder(farm)}
+                  disabled={orderingFarmId === farm.id}
                   className="w-full py-2.5 rounded-lg font-semibold text-sm transition-all duration-200"
-                  style={{ background: '#22C55E', color: '#fff' }}
+                  style={{ background: '#22C55E', color: '#fff', opacity: orderingFarmId === farm.id ? 0.6 : 1 }}
                   onMouseEnter={e => (e.currentTarget.style.background = '#16A34A')}
                   onMouseLeave={e => (e.currentTarget.style.background = '#22C55E')}
                 >
-                  Zamów
+                  {orderingFarmId === farm.id ? 'Składanie zamówienia...' : 'Zamów'}
                 </button>
               </div>
             )
           })}
         </div>
 
-        {filtered.length === 0 && (
+        {filtered.length === 0 && !loadingFarms && (
           <div className="text-center py-16">
             <p className="text-lg" style={{ color: 'rgba(255,255,255,0.4)' }}>
               Brak farm spełniających kryteria

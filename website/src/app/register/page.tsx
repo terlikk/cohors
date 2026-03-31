@@ -35,14 +35,37 @@ export default function RegisterPage() {
     }
 
     // Auto-sign-in after registration (skip email verification for MVP)
-    const { error: signInError } = await supabase.auth.signInWithPassword({ email, password })
+    const { data: signInData, error: signInError } = await supabase.auth.signInWithPassword({ email, password })
 
     if (signInError) {
       setError(signInError.message)
       setLoading(false)
-    } else {
-      router.push('/dashboard')
+      return
     }
+
+    // Create farm row in Supabase
+    const slug = farmName
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/^-|-$/g, '')
+
+    const { error: farmError } = await supabase.from('farms').insert({
+      user_id: signInData.user.id,
+      name: farmName,
+      slug,
+      city,
+      is_active: true,
+    })
+
+    if (farmError) {
+      setError('Konto utworzone, ale nie udało się utworzyć farmy: ' + farmError.message)
+      setLoading(false)
+      return
+    }
+
+    router.push('/dashboard')
   }
 
   const inputStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
