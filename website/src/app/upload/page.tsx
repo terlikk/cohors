@@ -269,13 +269,22 @@ export default function UploadPage() {
               {/* Submit */}
               <button
                 onClick={() => {
-                  const params = new URLSearchParams({ material, quantity: String(quantity) })
+                  const params = new URLSearchParams({
+                    material,
+                    color,
+                    quality,
+                    quantity: String(quantity),
+                    infill,
+                  })
+                  if (files.length > 0) {
+                    params.set('files', files.map(f => f.name).join(','))
+                  }
                   router.push(`/marketplace?${params.toString()}`)
                 }}
                 className="w-full mt-6 py-4 rounded-xl text-white font-semibold text-[16px] border-none cursor-pointer transition-all hover:opacity-90"
                 style={{ background: '#22C55E' }}
               >
-                Szukaj farm w marketplace →
+                Pokaż polecane farmy →
               </button>
             </div>
           </>
