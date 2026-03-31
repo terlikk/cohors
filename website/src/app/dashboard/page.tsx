@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
-type Tab = 'drukarki' | 'zamowienia' | 'automatyzacja' | 'profil'
+type Tab = 'drukarki' | 'zamowienia' | 'filamenty' | 'automatyzacja' | 'profil'
 type OrderStatus = 'nowe' | 'drukuje' | 'gotowe' | 'wysłane'
 type OrderFilter = 'all' | OrderStatus
 
@@ -42,6 +42,34 @@ interface Order {
   updated_at: string
 }
 
+interface Filament {
+  id: string
+  farm_id: string
+  type: string
+  color: string
+  brand: string
+  price_per_kg: number
+  stock_grams: number
+  low_stock_alert: number
+  created_at: string
+}
+
+const FILAMENT_TYPES = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon', 'PC']
+const FILAMENT_COLORS = [
+  { name: 'Biały', hex: '#ffffff' },
+  { name: 'Czarny', hex: '#1a1a1a' },
+  { name: 'Szary', hex: '#9ca3af' },
+  { name: 'Czerwony', hex: '#ef4444' },
+  { name: 'Niebieski', hex: '#3b82f6' },
+  { name: 'Zielony', hex: '#22c55e' },
+  { name: 'Żółty', hex: '#eab308' },
+  { name: 'Pomarańczowy', hex: '#f97316' },
+  { name: 'Fioletowy', hex: '#a855f7' },
+  { name: 'Różowy', hex: '#ec4899' },
+  { name: 'Brązowy', hex: '#92400e' },
+  { name: 'Naturalny', hex: '#d4c5a9' },
+]
+
 const PRINTER_MODELS = ['Bambu X1C', 'Bambu P1S', 'Bambu A1', 'Prusa MK4', 'Prusa XL', 'Ender 3', 'Voron', 'Other']
 const NOZZLE_SIZES = ['0.4', '0.6', '0.8']
 const MATERIALS = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon', 'PC']
@@ -62,6 +90,11 @@ const TABS: { id: Tab; label: string; icon: React.ReactNode }[] = [
     id: 'zamowienia',
     label: 'Zamówienia',
     icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg>,
+  },
+  {
+    id: 'filamenty' as Tab,
+    label: 'Filamenty',
+    icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/><path d="M12 2v7"/><path d="M12 15v7"/></svg>,
   },
   {
     id: 'automatyzacja',
@@ -244,6 +277,27 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [showDemo, setShowDemo] = useState(false)
 
+  // Filament state
+  const [filaments, setFilaments] = useState<Filament[]>([])
+  const [showFilamentModal, setShowFilamentModal] = useState(false)
+  const [editingFilament, setEditingFilament] = useState<Filament | null>(null)
+  const [newFilament, setNewFilament] = useState({
+    type: FILAMENT_TYPES[0],
+    color: FILAMENT_COLORS[0].name,
+    brand: '',
+    pricePerKg: '',
+    stockGrams: '',
+    lowStockAlert: '500',
+  })
+
+  // Pricing state
+  const [marginPercent, setMarginPercent] = useState('20')
+  const [marginBulk10, setMarginBulk10] = useState('5')
+  const [marginBulk50, setMarginBulk50] = useState('10')
+  const [marginBulk100, setMarginBulk100] = useState('15')
+  const [savingPricing, setSavingPricing] = useState(false)
+  const [pricingSaved, setPricingSaved] = useState(false)
+
   // QR code state
   const [qrDataUrl, setQrDataUrl] = useState<string>('')
   const [linkCopied, setLinkCopied] = useState(false)
@@ -285,6 +339,29 @@ export default function DashboardPage() {
           .order('created_at', { ascending: false })
 
         if (orderData) setOrders(orderData)
+
+        // Fetch filaments
+        const { data: filamentData } = await supabase
+          .from('filaments')
+          .select('*')
+          .eq('farm_id', farm.id)
+          .order('created_at', { ascending: true })
+
+        if (filamentData) setFilaments(filamentData)
+
+        // Fetch pricing settings
+        const { data: farmFull } = await supabase
+          .from('farms')
+          .select('margin_percent, margin_percent_bulk_10, margin_percent_bulk_50, margin_percent_bulk_100')
+          .eq('id', farm.id)
+          .single()
+
+        if (farmFull) {
+          if (farmFull.margin_percent != null) setMarginPercent(String(farmFull.margin_percent))
+          if (farmFull.margin_percent_bulk_10 != null) setMarginBulk10(String(farmFull.margin_percent_bulk_10))
+          if (farmFull.margin_percent_bulk_50 != null) setMarginBulk50(String(farmFull.margin_percent_bulk_50))
+          if (farmFull.margin_percent_bulk_100 != null) setMarginBulk100(String(farmFull.margin_percent_bulk_100))
+        }
       }
 
       setLoading(false)
@@ -371,6 +448,88 @@ export default function DashboardPage() {
       setTimeout(() => setLinkCopied(false), 2000)
     })
   }, [farmSlug])
+
+  async function handleAddFilament(e: React.FormEvent) {
+    e.preventDefault()
+    if (!farmId) return
+
+    const payload = {
+      farm_id: farmId,
+      type: newFilament.type,
+      color: newFilament.color,
+      brand: newFilament.brand,
+      price_per_kg: parseFloat(newFilament.pricePerKg) || 0,
+      stock_grams: parseInt(newFilament.stockGrams) || 0,
+      low_stock_alert: parseInt(newFilament.lowStockAlert) || 500,
+    }
+
+    if (editingFilament) {
+      const { data, error } = await supabase
+        .from('filaments')
+        .update(payload)
+        .eq('id', editingFilament.id)
+        .select()
+        .single()
+
+      if (error) { alert('Błąd edycji filamentu: ' + error.message); return }
+      setFilaments(prev => prev.map(f => f.id === editingFilament.id ? data : f))
+    } else {
+      const { data, error } = await supabase
+        .from('filaments')
+        .insert(payload)
+        .select()
+        .single()
+
+      if (error) { alert('Błąd dodawania filamentu: ' + error.message); return }
+      setFilaments(prev => [...prev, data])
+    }
+
+    setShowFilamentModal(false)
+    setEditingFilament(null)
+    setNewFilament({ type: FILAMENT_TYPES[0], color: FILAMENT_COLORS[0].name, brand: '', pricePerKg: '', stockGrams: '', lowStockAlert: '500' })
+  }
+
+  async function removeFilament(id: string) {
+    const { error } = await supabase.from('filaments').delete().eq('id', id)
+    if (error) { alert('Błąd usuwania filamentu: ' + error.message); return }
+    setFilaments(prev => prev.filter(f => f.id !== id))
+  }
+
+  function startEditFilament(f: Filament) {
+    setEditingFilament(f)
+    setNewFilament({
+      type: f.type,
+      color: f.color,
+      brand: f.brand,
+      pricePerKg: String(f.price_per_kg),
+      stockGrams: String(f.stock_grams),
+      lowStockAlert: String(f.low_stock_alert),
+    })
+    setShowFilamentModal(true)
+  }
+
+  async function handleSavePricing() {
+    if (!farmId) return
+    setSavingPricing(true)
+    const { error } = await supabase
+      .from('farms')
+      .update({
+        margin_percent: parseFloat(marginPercent) || 0,
+        margin_percent_bulk_10: parseFloat(marginBulk10) || 0,
+        margin_percent_bulk_50: parseFloat(marginBulk50) || 0,
+        margin_percent_bulk_100: parseFloat(marginBulk100) || 0,
+      })
+      .eq('id', farmId)
+
+    setSavingPricing(false)
+    if (error) { alert('Błąd zapisu: ' + error.message); return }
+    setPricingSaved(true)
+    setTimeout(() => setPricingSaved(false), 2000)
+  }
+
+  function getColorHex(colorName: string): string {
+    return FILAMENT_COLORS.find(c => c.name === colorName)?.hex || '#94a3b8'
+  }
 
   if (loading) {
     return (
@@ -722,6 +881,79 @@ export default function DashboardPage() {
             )
           })()}
 
+          {/* FILAMENTY TAB */}
+          {activeTab === 'filamenty' && (
+            <div>
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <h2 className="text-xl font-bold text-white">Filamenty</h2>
+                  <p className="text-slate-500 text-sm mt-1">
+                    Łącznie: {filaments.length} filamentów, {(filaments.reduce((s, f) => s + f.stock_grams, 0) / 1000).toFixed(1)} kg na stanie
+                  </p>
+                </div>
+                <button
+                  onClick={() => { setEditingFilament(null); setNewFilament({ type: FILAMENT_TYPES[0], color: FILAMENT_COLORS[0].name, brand: '', pricePerKg: '', stockGrams: '', lowStockAlert: '500' }); setShowFilamentModal(true) }}
+                  className="px-4 py-2 rounded-xl text-sm font-medium text-white cursor-pointer transition-all hover:opacity-90 border-none"
+                  style={{ background: '#22C55E' }}
+                >
+                  + Dodaj filament
+                </button>
+              </div>
+
+              {filaments.length === 0 ? (
+                <div className="rounded-2xl p-10 text-center" style={{ border: '2px dashed rgba(34,197,94,0.2)', background: 'rgba(34,197,94,0.02)' }}>
+                  <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(34,197,94,0.1)' }}>
+                    <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3"/></svg>
+                  </div>
+                  <p className="text-slate-400 text-sm">Nie masz jeszcze filamentów. Dodaj pierwszy filament!</p>
+                </div>
+              ) : (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  {filaments.map(fil => {
+                    const isLowStock = fil.stock_grams < fil.low_stock_alert
+                    return (
+                      <div key={fil.id} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: `1px solid ${isLowStock ? 'rgba(249,115,22,0.3)' : 'rgba(255,255,255,0.06)'}` }}>
+                        <div className="flex items-start justify-between mb-3">
+                          <div className="flex items-center gap-3">
+                            <div className="w-8 h-8 rounded-full border-2" style={{ background: getColorHex(fil.color), borderColor: 'rgba(255,255,255,0.15)' }} />
+                            <div>
+                              <h3 className="text-white font-semibold text-[15px]">{fil.type} — {fil.color}</h3>
+                              <p className="text-slate-500 text-[13px]">{fil.brand}</p>
+                            </div>
+                          </div>
+                          {isLowStock && (
+                            <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider" style={{ background: 'rgba(249,115,22,0.1)', border: '1px solid rgba(249,115,22,0.3)', color: '#f97316' }}>
+                              Niski stan!
+                            </span>
+                          )}
+                        </div>
+                        <div className="flex flex-wrap gap-x-4 gap-y-1 text-[13px] text-slate-400 mb-3">
+                          <span>Cena: <span className="text-white font-medium">{fil.price_per_kg.toFixed(2)} zł/kg</span></span>
+                          <span>Stan: <span className={`font-medium ${isLowStock ? '' : 'text-white'}`} style={isLowStock ? { color: '#f97316' } : undefined}>{fil.stock_grams}g ({(fil.stock_grams / 1000).toFixed(1)} kg)</span></span>
+                        </div>
+                        <div className="flex gap-2">
+                          <button
+                            onClick={() => startEditFilament(fil)}
+                            className="text-[12px] text-slate-500 cursor-pointer hover:text-violet-400 transition-colors bg-transparent border-none p-0"
+                          >
+                            Edytuj
+                          </button>
+                          <span className="text-slate-700 text-[12px]">•</span>
+                          <button
+                            onClick={() => removeFilament(fil.id)}
+                            className="text-[12px] text-slate-600 cursor-pointer hover:text-red-400 transition-colors bg-transparent border-none p-0"
+                          >
+                            Usuń
+                          </button>
+                        </div>
+                      </div>
+                    )
+                  })}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* AUTOMATYZACJA TAB */}
           {activeTab === 'automatyzacja' && (
             <div className="flex flex-col gap-8">
@@ -890,6 +1122,69 @@ export default function DashboardPage() {
                 </div>
               </div>
 
+              {/* Pricing Settings */}
+              <div className="rounded-2xl p-6 mt-6" style={{ background: 'rgba(139,92,246,0.03)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                <h3 className="text-white font-bold text-base mb-5">Ustawienia cenowe</h3>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div>
+                    <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Marża bazowa (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={marginPercent}
+                      onChange={e => setMarginPercent(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Rabat hurtowy 10+ szt (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={marginBulk10}
+                      onChange={e => setMarginBulk10(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Rabat hurtowy 50+ szt (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={marginBulk50}
+                      onChange={e => setMarginBulk50(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
+                      style={inputStyle}
+                    />
+                  </div>
+                  <div>
+                    <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Rabat hurtowy 100+ szt (%)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      max="100"
+                      value={marginBulk100}
+                      onChange={e => setMarginBulk100(e.target.value)}
+                      className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
+                      style={inputStyle}
+                    />
+                  </div>
+                </div>
+                <button
+                  onClick={handleSavePricing}
+                  disabled={savingPricing}
+                  className="mt-5 px-6 py-3 rounded-xl text-white font-semibold text-sm border-none cursor-pointer transition-all hover:opacity-90"
+                  style={{ background: pricingSaved ? '#16A34A' : '#8B5CF6' }}
+                >
+                  {savingPricing ? 'Zapisywanie...' : pricingSaved ? 'Zapisano!' : 'Zapisz ustawienia'}
+                </button>
+              </div>
+
               {/* QR Code Section */}
               {farmSlug && qrDataUrl && (
                 <div className="rounded-2xl p-6 mt-6" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
@@ -924,6 +1219,116 @@ export default function DashboardPage() {
           )}
         </main>
       </div>
+
+      {/* Add/Edit Filament Modal */}
+      {showFilamentModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center px-4" style={{ background: 'rgba(0,0,0,0.7)' }}>
+          <div className="w-full max-w-lg rounded-2xl p-6 max-h-[90vh] overflow-y-auto" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.08)' }}>
+            <div className="flex items-center justify-between mb-6">
+              <h2 className="text-lg font-bold text-white">{editingFilament ? 'Edytuj filament' : 'Dodaj filament'}</h2>
+              <button onClick={() => { setShowFilamentModal(false); setEditingFilament(null) }} className="text-slate-500 hover:text-white cursor-pointer bg-transparent border-none text-xl leading-none">&times;</button>
+            </div>
+
+            <form onSubmit={handleAddFilament} className="flex flex-col gap-4">
+              <div>
+                <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Typ filamentu</label>
+                <select
+                  value={newFilament.type}
+                  onChange={e => setNewFilament(p => ({ ...p, type: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none appearance-none cursor-pointer"
+                  style={inputStyle}
+                >
+                  {FILAMENT_TYPES.map(t => <option key={t} value={t}>{t}</option>)}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Kolor</label>
+                <div className="flex flex-wrap gap-2">
+                  {FILAMENT_COLORS.map(c => (
+                    <button
+                      key={c.name}
+                      type="button"
+                      onClick={() => setNewFilament(p => ({ ...p, color: c.name }))}
+                      className="flex items-center gap-2 px-3 py-2 rounded-xl text-sm font-medium cursor-pointer transition-all border-none"
+                      style={{
+                        background: newFilament.color === c.name ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.03)',
+                        color: newFilament.color === c.name ? '#a78bfa' : '#94a3b8',
+                        outline: newFilament.color === c.name ? '1px solid rgba(139,92,246,0.4)' : '1px solid rgba(255,255,255,0.06)',
+                      }}
+                    >
+                      <span className="w-4 h-4 rounded-full border" style={{ background: c.hex, borderColor: 'rgba(255,255,255,0.2)' }} />
+                      {c.name}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Marka</label>
+                <input
+                  required
+                  value={newFilament.brand}
+                  onChange={e => setNewFilament(p => ({ ...p, brand: e.target.value }))}
+                  placeholder="np. Prusament, Devil Design"
+                  className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
+                  style={inputStyle}
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Cena za kg (zł)</label>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    step="0.01"
+                    value={newFilament.pricePerKg}
+                    onChange={e => setNewFilament(p => ({ ...p, pricePerKg: e.target.value }))}
+                    placeholder="89.00"
+                    className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
+                    style={inputStyle}
+                  />
+                </div>
+                <div>
+                  <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Stan (gramy)</label>
+                  <input
+                    required
+                    type="number"
+                    min="0"
+                    value={newFilament.stockGrams}
+                    onChange={e => setNewFilament(p => ({ ...p, stockGrams: e.target.value }))}
+                    placeholder="1000"
+                    className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
+                    style={inputStyle}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Alert niskiego stanu (gramy)</label>
+                <input
+                  type="number"
+                  min="0"
+                  value={newFilament.lowStockAlert}
+                  onChange={e => setNewFilament(p => ({ ...p, lowStockAlert: e.target.value }))}
+                  className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
+                  style={inputStyle}
+                />
+              </div>
+
+              <button
+                type="submit"
+                className="w-full py-3.5 rounded-xl text-white font-semibold text-[15px] border-none cursor-pointer transition-all hover:opacity-90 mt-2"
+                style={{ background: '#22C55E' }}
+              >
+                {editingFilament ? 'Zapisz zmiany' : 'Dodaj filament'}
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
 
       {/* Add Printer Modal */}
       {showAddModal && (

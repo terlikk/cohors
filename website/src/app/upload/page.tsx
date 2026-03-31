@@ -266,6 +266,42 @@ export default function UploadPage() {
                 </div>
               </div>
 
+              {/* Estimate card */}
+              {(() => {
+                const AVG_PRICES: Record<string, number> = { PLA: 89, PETG: 99, ABS: 109, TPU: 139, ASA: 119, Nylon: 149 }
+                const estFilamentGrams = quantity * 18
+                const estPrintHours = quantity * 2
+                const materialPricePerKg = AVG_PRICES[material] || 89
+                const estCostLow = (estFilamentGrams / 1000) * materialPricePerKg * 1.3
+                const estCostHigh = (estFilamentGrams / 1000) * materialPricePerKg * 2.2
+
+                return (
+                  <div className="mt-5 rounded-xl p-4" style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                    <div className="flex items-center gap-2 mb-3">
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                      <span className="text-sm font-semibold" style={{ color: '#a78bfa' }}>Szacunkowe zużycie</span>
+                    </div>
+                    <div className="grid grid-cols-2 gap-3">
+                      <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                        <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Filament</p>
+                        <p className="text-white font-semibold text-sm">~{estFilamentGrams}g</p>
+                        <p className="text-slate-500 text-[11px]">{(estFilamentGrams / 1000).toFixed(2)} kg</p>
+                      </div>
+                      <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                        <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Czas druku</p>
+                        <p className="text-white font-semibold text-sm">~{estPrintHours}h</p>
+                        <p className="text-slate-500 text-[11px]">{quantity} szt × ~2h</p>
+                      </div>
+                      <div className="rounded-lg p-3 col-span-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                        <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Szacowany koszt ({material})</p>
+                        <p className="text-white font-semibold text-sm">{estCostLow.toFixed(0)} – {estCostHigh.toFixed(0)} zł</p>
+                        <p className="text-slate-500 text-[11px]">Szacunkowe zużycie: ~{estFilamentGrams}g filamentu, ~{estPrintHours}h druku</p>
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
+
               {/* Submit */}
               <button
                 onClick={() => {
