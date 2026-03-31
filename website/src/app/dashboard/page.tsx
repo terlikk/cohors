@@ -1,6 +1,7 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
+import QRCode from 'qrcode'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
@@ -243,6 +244,10 @@ export default function DashboardPage() {
   const [orders, setOrders] = useState<Order[]>([])
   const [showDemo, setShowDemo] = useState(false)
 
+  // QR code state
+  const [qrDataUrl, setQrDataUrl] = useState<string>('')
+  const [linkCopied, setLinkCopied] = useState(false)
+
   useEffect(() => {
     async function init() {
       const { data: { user } } = await supabase.auth.getUser()
@@ -339,6 +344,33 @@ export default function DashboardPage() {
     }
     setPrinters(prev => prev.filter(p => p.id !== id))
   }
+
+  // Generate QR code when farmSlug is available
+  useEffect(() => {
+    if (!farmSlug) return
+    const farmUrl = `https://printflow-seven.vercel.app/farm/${farmSlug}`
+    QRCode.toDataURL(farmUrl, {
+      width: 400,
+      margin: 2,
+      color: { dark: '#ffffffee', light: '#00000000' },
+    }).then((url: string) => setQrDataUrl(url)).catch(() => {})
+  }, [farmSlug])
+
+  const handleDownloadQr = useCallback(() => {
+    if (!qrDataUrl) return
+    const link = document.createElement('a')
+    link.download = `printflow-${farmSlug}-qr.png`
+    link.href = qrDataUrl
+    link.click()
+  }, [qrDataUrl, farmSlug])
+
+  const handleCopyLink = useCallback(() => {
+    const farmUrl = `https://printflow-seven.vercel.app/farm/${farmSlug}`
+    navigator.clipboard.writeText(farmUrl).then(() => {
+      setLinkCopied(true)
+      setTimeout(() => setLinkCopied(false), 2000)
+    })
+  }, [farmSlug])
 
   if (loading) {
     return (
@@ -857,6 +889,37 @@ export default function DashboardPage() {
                   </div>
                 </div>
               </div>
+
+              {/* QR Code Section */}
+              {farmSlug && qrDataUrl && (
+                <div className="rounded-2xl p-6 mt-6" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                  <h3 className="text-white font-bold text-base mb-4">QR kod Twojej farmy</h3>
+                  <div className="flex flex-col items-center gap-4">
+                    <div className="rounded-xl p-3" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}>
+                      <img src={qrDataUrl} alt="QR kod farmy" width={200} height={200} style={{ display: 'block' }} />
+                    </div>
+                    <p className="text-slate-400 text-[13px] font-mono">
+                      printflow-seven.vercel.app/farm/{farmSlug}
+                    </p>
+                    <div className="flex gap-3">
+                      <button
+                        onClick={handleDownloadQr}
+                        className="px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all border-none"
+                        style={{ background: 'rgba(139,92,246,0.15)', color: '#A78BFA', outline: '1px solid rgba(139,92,246,0.3)' }}
+                      >
+                        Pobierz PNG
+                      </button>
+                      <button
+                        onClick={handleCopyLink}
+                        className="px-5 py-2.5 rounded-xl text-sm font-medium cursor-pointer transition-all border-none"
+                        style={{ background: 'rgba(34,197,94,0.15)', color: '#22C55E', outline: '1px solid rgba(34,197,94,0.3)' }}
+                      >
+                        {linkCopied ? 'Skopiowano!' : 'Kopiuj link'}
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              )}
             </div>
           )}
         </main>
