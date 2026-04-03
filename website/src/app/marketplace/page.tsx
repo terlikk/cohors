@@ -60,18 +60,6 @@ interface Farm {
   filaments: FarmFilament[]
 }
 
-const DEMO_FARMS: Farm[] = [
-  { id: 'd1', name: '3DPrint Warszawa', slug: '3dprint-warszawa', city: 'Warszawa', rating_avg: 4.9, rating_count: 234, materials: ['PLA', 'PETG', 'ABS', 'TPU'], printerCount: 8, filaments: [{ type: 'PLA', color: 'Czarny', stock_grams: 3000, low_stock_alert: 500 }, { type: 'PLA', color: 'Biały', stock_grams: 2500, low_stock_alert: 500 }, { type: 'PETG', color: 'Naturalny', stock_grams: 1000, low_stock_alert: 500 }, { type: 'ABS', color: 'Czerwony', stock_grams: 800, low_stock_alert: 500 }, { type: 'TPU', color: 'Czarny', stock_grams: 400, low_stock_alert: 500 }] },
-  { id: 'd2', name: 'MakerHive', slug: 'makerhive', city: 'Kraków', rating_avg: 4.7, rating_count: 189, materials: ['PLA', 'PETG', 'ASA', 'Nylon'], printerCount: 12, filaments: [{ type: 'PLA', color: 'Biały', stock_grams: 5000, low_stock_alert: 500 }, { type: 'PETG', color: 'Czarny', stock_grams: 2000, low_stock_alert: 500 }, { type: 'ASA', color: 'Szary', stock_grams: 1500, low_stock_alert: 500 }, { type: 'Nylon', color: 'Naturalny', stock_grams: 900, low_stock_alert: 500 }] },
-  { id: 'd3', name: 'PrintLab Pro', slug: 'printlab-pro', city: 'Wrocław', rating_avg: 4.8, rating_count: 156, materials: ['PLA', 'PETG', 'ABS'], printerCount: 5, filaments: [{ type: 'PLA', color: 'Czarny', stock_grams: 2000, low_stock_alert: 500 }, { type: 'PETG', color: 'Biały', stock_grams: 1500, low_stock_alert: 500 }, { type: 'ABS', color: 'Czarny', stock_grams: 300, low_stock_alert: 500 }] },
-  { id: 'd4', name: 'NanoForge', slug: 'nanoforge', city: 'Gdańsk', rating_avg: 4.6, rating_count: 98, materials: ['PLA', 'PETG', 'TPU', 'Nylon'], printerCount: 15, filaments: [{ type: 'PLA', color: 'Biały', stock_grams: 8000, low_stock_alert: 500 }, { type: 'PETG', color: 'Czarny', stock_grams: 3000, low_stock_alert: 500 }, { type: 'TPU', color: 'Czarny', stock_grams: 1200, low_stock_alert: 500 }, { type: 'Nylon', color: 'Naturalny', stock_grams: 600, low_stock_alert: 500 }] },
-  { id: 'd5', name: 'Drukuj.pl', slug: 'drukuj-pl', city: 'Poznań', rating_avg: 4.5, rating_count: 312, materials: ['PLA', 'PETG'], printerCount: 3, filaments: [{ type: 'PLA', color: 'Biały', stock_grams: 1000, low_stock_alert: 500 }, { type: 'PETG', color: 'Czarny', stock_grams: 500, low_stock_alert: 500 }] },
-  { id: 'd6', name: '3D Masters', slug: '3d-masters', city: 'Łódź', rating_avg: 4.4, rating_count: 87, materials: ['PLA', 'ABS', 'ASA'], printerCount: 6, filaments: [{ type: 'PLA', color: 'Szary', stock_grams: 2000, low_stock_alert: 500 }, { type: 'ABS', color: 'Biały', stock_grams: 1500, low_stock_alert: 500 }, { type: 'ASA', color: 'Czarny', stock_grams: 800, low_stock_alert: 500 }] },
-  { id: 'd7', name: 'PrintPoint', slug: 'printpoint', city: 'Katowice', rating_avg: 4.8, rating_count: 201, materials: ['PLA', 'PETG', 'TPU', 'ABS'], printerCount: 10, filaments: [{ type: 'PLA', color: 'Czarny', stock_grams: 4000, low_stock_alert: 500 }, { type: 'PLA', color: 'Czerwony', stock_grams: 1500, low_stock_alert: 500 }, { type: 'PETG', color: 'Biały', stock_grams: 2000, low_stock_alert: 500 }, { type: 'TPU', color: 'Czarny', stock_grams: 800, low_stock_alert: 500 }, { type: 'ABS', color: 'Szary', stock_grams: 1000, low_stock_alert: 500 }] },
-  { id: 'd8', name: 'FabLab Szczecin', slug: 'fablab-szczecin', city: 'Szczecin', rating_avg: 4.3, rating_count: 65, materials: ['PLA', 'PETG', 'Nylon'], printerCount: 4, filaments: [{ type: 'PLA', color: 'Biały', stock_grams: 1200, low_stock_alert: 500 }, { type: 'PETG', color: 'Naturalny', stock_grams: 700, low_stock_alert: 500 }, { type: 'Nylon', color: 'Naturalny', stock_grams: 400, low_stock_alert: 500 }] },
-  { id: 'd9', name: 'MegaPrint', slug: 'megaprint', city: 'Lublin', rating_avg: 4.6, rating_count: 143, materials: ['PLA', 'PETG', 'ABS', 'TPU', 'ASA'], printerCount: 9, filaments: [{ type: 'PLA', color: 'Czarny', stock_grams: 3500, low_stock_alert: 500 }, { type: 'PETG', color: 'Biały', stock_grams: 2500, low_stock_alert: 500 }, { type: 'ABS', color: 'Czerwony', stock_grams: 1200, low_stock_alert: 500 }, { type: 'TPU', color: 'Biały', stock_grams: 600, low_stock_alert: 500 }, { type: 'ASA', color: 'Szary', stock_grams: 1000, low_stock_alert: 500 }] },
-  { id: 'd10', name: 'QuickPrint24', slug: 'quickprint24', city: 'Bydgoszcz', rating_avg: 4.2, rating_count: 52, materials: ['PLA', 'PETG'], printerCount: 2, filaments: [{ type: 'PLA', color: 'Biały', stock_grams: 800, low_stock_alert: 500 }, { type: 'PETG', color: 'Czarny', stock_grams: 500, low_stock_alert: 500 }] },
-]
 
 function Stars({ rating }: { rating: number }) {
   return (
@@ -101,7 +89,6 @@ export default function MarketplacePage() {
   const [minRating, setMinRating] = useState('0')
   const [sortBy, setSortBy] = useState('rating')
   const [farms, setFarms] = useState<Farm[]>([])
-  const [isDemo, setIsDemo] = useState(false)
   const [loadingFarms, setLoadingFarms] = useState(true)
   const [orderingFarmId, setOrderingFarmId] = useState<string | null>(null)
   const [orderConfirmation, setOrderConfirmation] = useState<string | null>(null)
@@ -146,10 +133,6 @@ export default function MarketplacePage() {
         })
 
         setFarms(farmsList)
-        setIsDemo(false)
-      } else {
-        setFarms(DEMO_FARMS)
-        setIsDemo(true)
       }
       setLoadingFarms(false)
     }
@@ -157,11 +140,6 @@ export default function MarketplacePage() {
   }, [])
 
   async function handleOrder(farm: Farm) {
-    if (farm.id.startsWith('d')) {
-      alert('To jest farma demo. Zarejestruj swoją farmę, aby przyjmować zamówienia!')
-      return
-    }
-
     setOrderingFarmId(farm.id)
     const supabase = createClient()
 
@@ -260,9 +238,6 @@ export default function MarketplacePage() {
             <span className="text-xl font-bold bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(135deg, #8B5CF6, #7C3AED)' }}>PrintFlow</span>
           </div>
           <div className="flex items-center gap-3">
-            {isDemo && (
-              <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.2)' }}>Dane demo</span>
-            )}
             {urlFiles && <div className="text-xs" style={{ color: 'rgba(255,255,255,0.4)' }}>Pliki: {urlFiles}</div>}
           </div>
         </div>
@@ -490,14 +465,29 @@ export default function MarketplacePage() {
 
         {filtered.length === 0 && !loadingFarms && (
           <div className="text-center py-16">
-            <p className="text-lg" style={{ color: 'rgba(255,255,255,0.4)' }}>Brak farm spełniających kryteria</p>
-            <button
-              className="mt-4 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
-              style={{ color: '#8B5CF6', border: '1px solid rgba(139,92,246,0.3)' }}
-              onClick={() => { setCitySearch(''); setMinRating('0') }}
-            >
-              Wyczyść filtry
-            </button>
+            {farms.length === 0 ? (
+              <>
+                <p className="text-lg" style={{ color: 'rgba(255,255,255,0.4)' }}>Brak farm w systemie. Bądź pierwszym!</p>
+                <a
+                  href="/register"
+                  className="mt-4 inline-block text-sm font-medium px-5 py-2.5 rounded-lg no-underline transition-colors text-white"
+                  style={{ background: '#22C55E' }}
+                >
+                  Zarejestruj farmę
+                </a>
+              </>
+            ) : (
+              <>
+                <p className="text-lg" style={{ color: 'rgba(255,255,255,0.4)' }}>Brak farm spełniających kryteria</p>
+                <button
+                  className="mt-4 text-sm font-medium px-4 py-2 rounded-lg transition-colors"
+                  style={{ color: '#8B5CF6', border: '1px solid rgba(139,92,246,0.3)' }}
+                  onClick={() => { setCitySearch(''); setMinRating('0') }}
+                >
+                  Wyczyść filtry
+                </button>
+              </>
+            )}
           </div>
         )}
       </main>

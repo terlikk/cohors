@@ -115,105 +115,6 @@ const ORDER_STATUS_STYLES: Record<OrderStatus, { bg: string; border: string; col
   wysłane: { bg: 'rgba(168,85,247,0.1)', border: 'rgba(168,85,247,0.3)', color: '#a855f7', label: 'WYSŁANE' },
 }
 
-interface DemoOrder {
-  id: string
-  orderNumber: string
-  client: string
-  files: string[]
-  quantity: number
-  material: string
-  color: string
-  quality: string
-  price: string
-  status: OrderStatus
-  progress?: number
-  printer?: string
-  eta?: string
-  tracking?: string
-  timestamp: string
-  actions: string[]
-}
-
-const DEMO_ORDERS: DemoOrder[] = [
-  {
-    id: '1',
-    orderNumber: 'PF-2026-00045',
-    client: 'Anna Kowalska',
-    files: ['bracket.stl'],
-    quantity: 10,
-    material: 'PLA',
-    color: 'Czarny',
-    quality: 'Standard',
-    price: '764,75 zł',
-    status: 'nowe',
-    timestamp: '2 min temu',
-    actions: ['Akceptuj', 'Odrzuć', 'Chat'],
-  },
-  {
-    id: '2',
-    orderNumber: 'PF-2026-00044',
-    client: 'Jan Nowak',
-    files: ['obudowa.stl'],
-    quantity: 3,
-    material: 'PETG',
-    color: 'Biały',
-    quality: 'High',
-    price: '342,00 zł',
-    status: 'drukuje',
-    progress: 62,
-    printer: 'Bambu X1C #1',
-    eta: '2h 15min',
-    timestamp: '1h temu',
-    actions: [],
-  },
-  {
-    id: '3',
-    orderNumber: 'PF-2026-00043',
-    client: 'TechParts Sp. z o.o.',
-    files: ['gear_v2.stl', 'mount.stl'],
-    quantity: 50,
-    material: 'ABS',
-    color: 'Czerwony',
-    quality: 'Standard',
-    price: '3 200,00 zł',
-    status: 'drukuje',
-    progress: 34,
-    printer: '3 drukarki',
-    eta: '8h',
-    timestamp: '3h temu',
-    actions: [],
-  },
-  {
-    id: '4',
-    orderNumber: 'PF-2026-00042',
-    client: 'Marek Wiśniewski',
-    files: ['lampshade.stl'],
-    quantity: 1,
-    material: 'PLA',
-    color: 'Biały',
-    quality: 'High',
-    price: '89,50 zł',
-    status: 'gotowe',
-    timestamp: '5h temu',
-    actions: ['Wyślij'],
-  },
-  {
-    id: '5',
-    orderNumber: 'PF-2026-00041',
-    client: 'Kasia Pawlak',
-    files: ['phone_case.stl'],
-    quantity: 2,
-    material: 'TPU',
-    color: 'Czarny',
-    quality: 'Standard',
-    price: '156,00 zł',
-    status: 'wysłane',
-    tracking: 'InPost: PF123456789',
-    timestamp: '1d temu',
-    actions: [],
-  },
-]
-
 const FREE_FEATURES = [
   { name: 'Auto-wycena', desc: 'Ustaw swoją marżę (%), system obliczy cenę za klienta automatycznie: koszt materiału + czas druku + amortyzacja drukarki + Twoja marża' },
   { name: 'Panel zamówień', desc: 'Accept/reject, status tracking' },
@@ -275,7 +176,6 @@ export default function DashboardPage() {
 
   // Order state
   const [orders, setOrders] = useState<Order[]>([])
-  const [showDemo, setShowDemo] = useState(false)
 
   // Filament state
   const [filaments, setFilaments] = useState<Filament[]>([])
@@ -543,19 +443,11 @@ export default function DashboardPage() {
   const userCity = user?.user_metadata?.city || ''
   const inputStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
 
-  // Orders: show real or demo
-  const hasRealOrders = orders.length > 0
-  const displayOrders = hasRealOrders && !showDemo
-
   // Order counts for filters
   const orderCounts: Record<OrderStatus, number> = { nowe: 0, drukuje: 0, gotowe: 0, wysłane: 0 }
-  if (displayOrders) {
-    orders.forEach(o => {
-      if (orderCounts[o.status] !== undefined) orderCounts[o.status]++
-    })
-  } else if (showDemo || !hasRealOrders) {
-    DEMO_ORDERS.forEach(o => orderCounts[o.status]++)
-  }
+  orders.forEach(o => {
+    if (orderCounts[o.status] !== undefined) orderCounts[o.status]++
+  })
 
   function formatOrderDate(dateStr: string) {
     const d = new Date(dateStr)
@@ -698,30 +590,11 @@ export default function DashboardPage() {
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <h2 className="text-xl font-bold text-white">Zamówienia</h2>
-                  {!hasRealOrders && (
-                    <span className="text-xs px-3 py-1 rounded-full" style={{ background: 'rgba(234,179,8,0.1)', color: '#eab308', border: '1px solid rgba(234,179,8,0.2)' }}>
-                      Dane demo
-                    </span>
-                  )}
-                  {hasRealOrders && (
-                    <button
-                      onClick={() => setShowDemo(!showDemo)}
-                      className="text-xs px-3 py-1.5 rounded-lg cursor-pointer transition-all border-none"
-                      style={{
-                        background: showDemo ? 'rgba(234,179,8,0.15)' : 'rgba(255,255,255,0.05)',
-                        color: showDemo ? '#eab308' : '#94a3b8',
-                      }}
-                    >
-                      {showDemo ? 'Pokaż prawdziwe zamówienia' : 'Pokaż demo zamówienia'}
-                    </button>
-                  )}
                 </div>
                 <p className="text-slate-500 text-sm mb-6">
-                  {displayOrders
+                  {orders.length > 0
                     ? 'Wszystkie przychodzące zlecenia od klientów.'
-                    : hasRealOrders
-                      ? 'Przykładowe zamówienia demo.'
-                      : 'Brak zamówień. Poniżej dane demo — zamówienia pojawią się, gdy klienci złożą zlecenia.'}
+                    : 'Brak zamówień. Udostępnij swój profil klientom!'}
                 </p>
 
                 {/* Filter bar */}
@@ -750,8 +623,8 @@ export default function DashboardPage() {
                   })}
                 </div>
 
-                {/* Real orders */}
-                {displayOrders && (
+                {/* Orders */}
+                {orders.length > 0 ? (
                   <div className="flex flex-col gap-4">
                     {orders
                       .filter(o => orderFilter === 'all' || o.status === orderFilter)
@@ -791,90 +664,12 @@ export default function DashboardPage() {
                       </div>
                     )}
                   </div>
-                )}
-
-                {/* Demo orders fallback */}
-                {!displayOrders && (
-                  <div className="flex flex-col gap-4">
-                    {DEMO_ORDERS
-                      .filter(o => orderFilter === 'all' || o.status === orderFilter)
-                      .map(order => {
-                        const st = ORDER_STATUS_STYLES[order.status]
-                        return (
-                          <div key={order.id} className="rounded-2xl p-5" style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}>
-                            <div className="flex items-start justify-between mb-3">
-                              <div>
-                                <div className="flex items-center gap-3 mb-1">
-                                  <span className="text-white font-semibold text-[15px]">{order.orderNumber}</span>
-                                  <span className="px-2.5 py-1 rounded-lg text-[11px] font-semibold uppercase tracking-wider" style={{ background: st.bg, border: `1px solid ${st.border}`, color: st.color }}>
-                                    {st.label}{order.progress !== undefined ? ` ${order.progress}%` : ''}
-                                  </span>
-                                </div>
-                                <p className="text-slate-400 text-[13px]">{order.client}</p>
-                              </div>
-                              <span className="text-slate-600 text-[12px] whitespace-nowrap">{order.timestamp}</span>
-                            </div>
-
-                            <div className="flex flex-wrap gap-x-4 gap-y-1.5 text-[13px] text-slate-400 mb-3">
-                              <span className="flex items-center gap-1.5">
-                                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z"/><polyline points="14 2 14 8 20 8"/></svg>
-                                {order.files.join(' + ')}
-                              </span>
-                              <span>{order.quantity} szt × {order.material} {order.color} {order.quality}</span>
-                              <span className="text-white font-semibold">{order.price}</span>
-                            </div>
-
-                            {(order.printer || order.eta || order.tracking) && (
-                              <div className="flex flex-wrap gap-x-4 gap-y-1 text-[12px] text-slate-500 mb-3">
-                                {order.printer && (
-                                  <span className="flex items-center gap-1.5">
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><polyline points="6 9 6 2 18 2 18 9"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><rect width="12" height="8" x="6" y="14"/></svg>
-                                    {order.printer}
-                                  </span>
-                                )}
-                                {order.eta && <span>ETA: {order.eta}</span>}
-                                {order.tracking && (
-                                  <span className="flex items-center gap-1.5" style={{ color: '#a855f7' }}>
-                                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect width="16" height="13" x="4" y="8" rx="2"/><path d="m22 8-10 7L2 8"/></svg>
-                                    {order.tracking}
-                                  </span>
-                                )}
-                              </div>
-                            )}
-
-                            {order.status === 'drukuje' && order.progress !== undefined && (
-                              <div className="mb-3">
-                                <div className="w-full h-1.5 rounded-full overflow-hidden" style={{ background: 'rgba(59,130,246,0.1)' }}>
-                                  <div className="h-full rounded-full transition-all" style={{ width: `${order.progress}%`, background: '#3b82f6' }} />
-                                </div>
-                              </div>
-                            )}
-
-                            {order.actions.length > 0 && (
-                              <div className="flex gap-2 mt-1">
-                                {order.actions.map(action => {
-                                  const isAccept = action === 'Akceptuj'
-                                  const isReject = action === 'Odrzuć'
-                                  const isSend = action === 'Wyślij'
-                                  return (
-                                    <button
-                                      key={action}
-                                      className="px-4 py-2 rounded-xl text-[13px] font-medium cursor-pointer transition-all border-none"
-                                      style={{
-                                        background: isAccept || isSend ? '#22C55E' : isReject ? 'rgba(239,68,68,0.1)' : 'rgba(139,92,246,0.1)',
-                                        color: isAccept || isSend ? 'white' : isReject ? '#f87171' : '#a78bfa',
-                                        border: isReject ? '1px solid rgba(239,68,68,0.2)' : (!isAccept && !isSend) ? '1px solid rgba(139,92,246,0.2)' : 'none',
-                                      }}
-                                    >
-                                      {action}
-                                    </button>
-                                  )
-                                })}
-                              </div>
-                            )}
-                          </div>
-                        )
-                      })}
+                ) : (
+                  <div className="rounded-2xl p-10 text-center" style={{ border: '2px dashed rgba(34,197,94,0.2)', background: 'rgba(34,197,94,0.02)' }}>
+                    <div className="w-14 h-14 rounded-2xl flex items-center justify-center mx-auto mb-4" style={{ background: 'rgba(34,197,94,0.1)' }}>
+                      <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect width="8" height="4" x="8" y="2" rx="1" ry="1"/></svg>
+                    </div>
+                    <p className="text-slate-400 text-sm">Brak zamówień. Udostępnij swój profil klientom!</p>
                   </div>
                 )}
               </div>
