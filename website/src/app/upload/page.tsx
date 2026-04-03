@@ -24,8 +24,8 @@ export default function UploadPage() {
     for (let i = 0; i < newFiles.length; i++) {
       const f = newFiles[i]
       const ext = f.name.split('.').pop()?.toLowerCase()
-      if (!ext || !['stl', '3mf', 'obj'].includes(ext)) {
-        alert(`Nieobsługiwany format: ${f.name}. Użyj .STL, .3MF lub .OBJ`)
+      if (!ext || !['stl', '3mf', 'obj', 'step', 'stp'].includes(ext)) {
+        alert(`Nieobsługiwany format: ${f.name}. Użyj .STL, .3MF, .OBJ, .STEP lub .STP`)
         continue
       }
       if (f.size > 100 * 1024 * 1024) {
@@ -97,14 +97,14 @@ export default function UploadPage() {
             <p className="text-xl font-semibold text-white">Przeciągnij pliki tutaj</p>
             <p className="text-slate-500 text-sm mt-2">lub kliknij żeby wybrać z dysku &bull; max 100 MB na plik</p>
             <div className="flex gap-2.5 justify-center mt-5">
-              {['.STL', '.3MF', '.OBJ'].map(f => (
+              {['.STL', '.3MF', '.OBJ', '.STEP', '.STP'].map(f => (
                 <span key={f} className="px-3.5 py-1 rounded-lg text-[13px] font-medium" style={{ background: 'rgba(139,92,246,0.1)', color: '#8B5CF6' }}>{f}</span>
               ))}
             </div>
             <input
               ref={fileInputRef}
               type="file"
-              accept=".stl,.3mf,.obj"
+              accept=".stl,.3mf,.obj,.step,.stp"
               multiple
               className="hidden"
               onChange={e => {
@@ -160,7 +160,7 @@ export default function UploadPage() {
               <input
                 ref={fileInputRef}
                 type="file"
-                accept=".stl,.3mf,.obj"
+                accept=".stl,.3mf,.obj,.step,.stp"
                 multiple
                 className="hidden"
                 onChange={e => {

@@ -136,7 +136,12 @@ export default function RegisterPage() {
       await supabase.from('filaments').insert(filamentRows)
     }
 
-    router.push('/dashboard')
+    try {
+      router.push('/dashboard')
+      router.refresh()
+    } catch {
+      window.location.href = '/dashboard'
+    }
   }
 
   const inputStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
