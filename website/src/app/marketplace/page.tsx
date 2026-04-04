@@ -48,6 +48,15 @@ interface FarmFilament {
   low_stock_alert: number
 }
 
+interface FarmPrinter {
+  name: string
+  model: string
+  build_x: number | null
+  build_y: number | null
+  build_z: number | null
+  materials: string[]
+}
+
 interface Farm {
   id: string
   name: string
@@ -58,6 +67,7 @@ interface Farm {
   materials: string[]
   printerCount: number
   filaments: FarmFilament[]
+  printers: FarmPrinter[]
 }
 
 
@@ -81,6 +91,12 @@ export default function MarketplacePage() {
   const urlQuantity = searchParams.get('quantity')
   const urlInfill = searchParams.get('infill')
   const urlFiles = searchParams.get('files')
+  const urlMaxX = searchParams.get('maxX')
+  const urlMaxY = searchParams.get('maxY')
+  const urlMaxZ = searchParams.get('maxZ')
+  const modelDims = urlMaxX && urlMaxY && urlMaxZ
+    ? { x: parseFloat(urlMaxX), y: parseFloat(urlMaxY), z: parseFloat(urlMaxZ) }
+    : null
 
   const hasOrderParams = !!(urlMaterial && urlQuantity)
   const quantity = urlQuantity ? parseInt(urlQuantity, 10) : 1
@@ -107,7 +123,7 @@ export default function MarketplacePage() {
 
         // Fetch printers and filaments in parallel
         const [printersRes, filamentsRes] = await Promise.all([
-          supabase.from('printers').select('farm_id, materials').in('farm_id', farmIds),
+          supabase.from('printers').select('farm_id, name, model, build_x, build_y, build_z, materials').in('farm_id', farmIds),
           supabase.from('filaments').select('farm_id, type, color, stock_grams, low_stock_alert').in('farm_id', farmIds),
         ])
 
@@ -129,6 +145,7 @@ export default function MarketplacePage() {
             materials: filamentMaterials.length > 0 ? filamentMaterials : [...new Set(farmPrinters.flatMap(p => p.materials || []))],
             printerCount: farmPrinters.length,
             filaments: farmFilaments.map(fil => ({ type: fil.type, color: fil.color, stock_grams: fil.stock_grams, low_stock_alert: fil.low_stock_alert })),
+            printers: farmPrinters.map(p => ({ name: p.name, model: p.model, build_x: p.build_x, build_y: p.build_y, build_z: p.build_z, materials: p.materials || [] })),
           }
         })
 
@@ -179,7 +196,17 @@ export default function MarketplacePage() {
 
   const inputStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
 
+  // Helper: get printers that fit the model dimensions
+  function getMatchingPrinters(farm: Farm): FarmPrinter[] {
+    if (!modelDims) return farm.printers
+    return farm.printers.filter(p =>
+      p.build_x != null && p.build_y != null && p.build_z != null &&
+      p.build_x >= modelDims.x && p.build_y >= modelDims.y && p.build_z >= modelDims.z
+    )
+  }
+
   // Strict filtering: when material is specified, only show farms that have that material in filaments
+  // When dimensions are specified, only show farms with printers that fit
   const filtered = farms
     .filter(f => {
       if (hasOrderParams && urlMaterial) {
@@ -187,6 +214,11 @@ export default function MarketplacePage() {
         if (!hasFilament && f.filaments.length > 0) return false
         // Fallback: if farm has no filaments data, check materials from printers
         if (f.filaments.length === 0 && f.materials.length > 0 && !f.materials.includes(urlMaterial)) return false
+      }
+      // Filter by bed size: only farms with at least one printer that fits
+      if (modelDims) {
+        const matching = getMatchingPrinters(f)
+        if (matching.length === 0) return false
       }
       if (citySearch && !f.city.toLowerCase().includes(citySearch.toLowerCase())) return false
       if (parseFloat(minRating) > 0 && (f.rating_avg || 0) < parseFloat(minRating)) return false
@@ -251,7 +283,7 @@ export default function MarketplacePage() {
         {hasOrderParams ? (
           <div className="rounded-xl p-4 mb-8 flex flex-wrap items-center gap-3" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
             <span className="text-sm font-medium" style={{ color: '#22C55E' }}>Znaleziono {filtered.length} farm dla:</span>
-            {[urlMaterial, urlColor, `${quantity} szt`, urlQuality, urlInfill ? `wypełnienie ${urlInfill}` : null]
+            {[urlMaterial, urlColor, `${quantity} szt`, urlQuality, urlInfill ? `wypełnienie ${urlInfill}` : null, modelDims ? `📐 ${modelDims.x.toFixed(0)}×${modelDims.y.toFixed(0)}×${modelDims.z.toFixed(0)} mm` : null]
               .filter(Boolean)
               .map((tag, i) => (
                 <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.25)' }}>
@@ -403,6 +435,28 @@ export default function MarketplacePage() {
                   </svg>
                   {farm.printerCount} {farm.printerCount === 1 ? 'drukarka' : farm.printerCount < 5 ? 'drukarki' : 'drukarek'}
                 </div>
+
+                {/* Matching printers by bed size */}
+                {modelDims && (() => {
+                  const matching = getMatchingPrinters(farm)
+                  return matching.length > 0 ? (
+                    <div className="mb-3 rounded-lg px-3 py-2" style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)' }}>
+                      <p className="text-[11px] uppercase tracking-wider mb-1.5 font-medium" style={{ color: '#22C55E' }}>
+                        Pasujące drukarki ({matching.length})
+                      </p>
+                      <div className="flex flex-col gap-1">
+                        {matching.map((p, i) => (
+                          <div key={i} className="flex items-center justify-between text-[12px]">
+                            <span className="text-white font-medium">{p.name || p.model}</span>
+                            <span style={{ color: 'rgba(255,255,255,0.35)' }}>
+                              {p.build_x}×{p.build_y}×{p.build_z} mm
+                            </span>
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  ) : null
+                })()}
 
                 {/* Order-specific info */}
                 {hasOrderParams && (

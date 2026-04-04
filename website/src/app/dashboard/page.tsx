@@ -70,7 +70,79 @@ const FILAMENT_COLORS = [
   { name: 'Naturalny', hex: '#d4c5a9' },
 ]
 
-const PRINTER_MODELS = ['Bambu X1C', 'Bambu P1S', 'Bambu A1', 'Prusa MK4', 'Prusa XL', 'Ender 3', 'Voron', 'Other']
+interface PrinterSpec {
+  name: string
+  brand: string
+  buildX: number
+  buildY: number
+  buildZ: number
+  defaultNozzle: string
+  defaultMaterials: string[]
+}
+
+const PRINTER_DATABASE: PrinterSpec[] = [
+  // Bambu Lab
+  { name: 'Bambu Lab X1 Carbon', brand: 'Bambu Lab', buildX: 256, buildY: 256, buildZ: 256, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'Bambu Lab X1E', brand: 'Bambu Lab', buildX: 256, buildY: 256, buildZ: 256, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'Bambu Lab P1S', brand: 'Bambu Lab', buildX: 256, buildY: 256, buildZ: 256, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'] },
+  { name: 'Bambu Lab P1P', brand: 'Bambu Lab', buildX: 256, buildY: 256, buildZ: 256, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  { name: 'Bambu Lab A1', brand: 'Bambu Lab', buildX: 256, buildY: 256, buildZ: 256, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  { name: 'Bambu Lab A1 mini', brand: 'Bambu Lab', buildX: 180, buildY: 180, buildZ: 180, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  { name: 'Bambu Lab P2S', brand: 'Bambu Lab', buildX: 256, buildY: 256, buildZ: 256, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'] },
+  { name: 'Bambu Lab H2D', brand: 'Bambu Lab', buildX: 256, buildY: 256, buildZ: 256, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'Bambu Lab H2S', brand: 'Bambu Lab', buildX: 350, buildY: 350, buildZ: 340, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'Bambu Lab H2C', brand: 'Bambu Lab', buildX: 500, buildY: 500, buildZ: 500, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  // Prusa
+  { name: 'Prusa MK4S', brand: 'Prusa', buildX: 250, buildY: 210, buildZ: 220, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'Prusa MK4', brand: 'Prusa', buildX: 250, buildY: 210, buildZ: 220, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'Prusa MK3S+', brand: 'Prusa', buildX: 250, buildY: 210, buildZ: 210, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'] },
+  { name: 'Prusa MINI+', brand: 'Prusa', buildX: 180, buildY: 180, buildZ: 180, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ASA', 'TPU'] },
+  { name: 'Prusa XL (1 głowica)', brand: 'Prusa', buildX: 360, buildY: 360, buildZ: 360, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'Prusa XL (5 głowic)', brand: 'Prusa', buildX: 360, buildY: 360, buildZ: 360, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'Prusa CORE One', brand: 'Prusa', buildX: 250, buildY: 220, buildZ: 270, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  // Creality
+  { name: 'Creality Ender 3 V3', brand: 'Creality', buildX: 220, buildY: 220, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  { name: 'Creality Ender 3 V3 SE', brand: 'Creality', buildX: 220, buildY: 220, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  { name: 'Creality Ender 3 V3 KE', brand: 'Creality', buildX: 220, buildY: 220, buildZ: 240, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  { name: 'Creality Ender 3 S1 Pro', brand: 'Creality', buildX: 220, buildY: 220, buildZ: 270, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+  { name: 'Creality Ender 5 S1', brand: 'Creality', buildX: 220, buildY: 220, buildZ: 280, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+  { name: 'Creality CR-10 SE', brand: 'Creality', buildX: 300, buildY: 300, buildZ: 400, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+  { name: 'Creality K1', brand: 'Creality', buildX: 220, buildY: 220, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU'] },
+  { name: 'Creality K1 Max', brand: 'Creality', buildX: 300, buildY: 300, buildZ: 300, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'] },
+  { name: 'Creality K1C', brand: 'Creality', buildX: 220, buildY: 220, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU'] },
+  { name: 'Creality K2 Plus', brand: 'Creality', buildX: 350, buildY: 350, buildZ: 350, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  // Anycubic
+  { name: 'Anycubic Kobra 3', brand: 'Anycubic', buildX: 250, buildY: 250, buildZ: 260, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  { name: 'Anycubic Kobra 2 Pro', brand: 'Anycubic', buildX: 220, buildY: 220, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  { name: 'Anycubic Kobra 2 Max', brand: 'Anycubic', buildX: 420, buildY: 420, buildZ: 500, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'TPU'] },
+  // Elegoo
+  { name: 'Elegoo Neptune 4 Pro', brand: 'Elegoo', buildX: 225, buildY: 225, buildZ: 265, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+  { name: 'Elegoo Neptune 4 Plus', brand: 'Elegoo', buildX: 320, buildY: 320, buildZ: 385, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+  { name: 'Elegoo Neptune 4 Max', brand: 'Elegoo', buildX: 420, buildY: 420, buildZ: 480, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+  // Voron (popular configs)
+  { name: 'Voron 0.2', brand: 'Voron', buildX: 120, buildY: 120, buildZ: 120, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon'] },
+  { name: 'Voron Trident 250', brand: 'Voron', buildX: 250, buildY: 250, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon', 'PC'] },
+  { name: 'Voron Trident 300', brand: 'Voron', buildX: 300, buildY: 300, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon', 'PC'] },
+  { name: 'Voron Trident 350', brand: 'Voron', buildX: 350, buildY: 350, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon', 'PC'] },
+  { name: 'Voron 2.4 250', brand: 'Voron', buildX: 250, buildY: 250, buildZ: 230, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon', 'PC'] },
+  { name: 'Voron 2.4 300', brand: 'Voron', buildX: 300, buildY: 300, buildZ: 280, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon', 'PC'] },
+  { name: 'Voron 2.4 350', brand: 'Voron', buildX: 350, buildY: 350, buildZ: 330, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon', 'PC'] },
+  // Flashforge
+  { name: 'Flashforge Adventurer 5M', brand: 'Flashforge', buildX: 220, buildY: 220, buildZ: 220, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+  { name: 'Flashforge Adventurer 5M Pro', brand: 'Flashforge', buildX: 220, buildY: 220, buildZ: 220, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'] },
+  // QIDI
+  { name: 'QIDI X-Plus 3', brand: 'QIDI', buildX: 280, buildY: 280, buildZ: 270, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'] },
+  { name: 'QIDI X-Max 3', brand: 'QIDI', buildX: 325, buildY: 325, buildZ: 315, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon', 'PC'] },
+  { name: 'QIDI Q1 Pro', brand: 'QIDI', buildX: 245, buildY: 245, buildZ: 245, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'TPU', 'Nylon'] },
+  // RatRig
+  { name: 'RatRig V-Core 3 300', brand: 'RatRig', buildX: 300, buildY: 300, buildZ: 300, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon'] },
+  { name: 'RatRig V-Core 3 400', brand: 'RatRig', buildX: 400, buildY: 400, buildZ: 400, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon'] },
+  { name: 'RatRig V-Core 3 500', brand: 'RatRig', buildX: 500, buildY: 500, buildZ: 500, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'ASA', 'Nylon'] },
+  // Artillery
+  { name: 'Artillery Sidewinder X4 Plus', brand: 'Artillery', buildX: 300, buildY: 300, buildZ: 400, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+  { name: 'Artillery Genius Pro', brand: 'Artillery', buildX: 220, buildY: 220, buildZ: 250, defaultNozzle: '0.4', defaultMaterials: ['PLA', 'PETG', 'ABS', 'TPU'] },
+]
+
 const NOZZLE_SIZES = ['0.4', '0.6', '0.8']
 const MATERIALS = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon', 'PC']
 
@@ -164,15 +236,41 @@ export default function DashboardPage() {
   const [printers, setPrinters] = useState<Printer[]>([])
   const [showAddModal, setShowAddModal] = useState(false)
   const [orderFilter, setOrderFilter] = useState<OrderFilter>('all')
+  const [printerSearch, setPrinterSearch] = useState('')
+  const [showPrinterDropdown, setShowPrinterDropdown] = useState(false)
+  const [selectedSpec, setSelectedSpec] = useState<PrinterSpec | null>(null)
   const [newPrinter, setNewPrinter] = useState({
     name: '',
-    model: PRINTER_MODELS[0],
+    model: '',
     buildX: '256',
     buildY: '256',
     buildZ: '256',
     nozzle: '0.4',
     materials: [] as string[],
   })
+
+  const filteredPrinterSpecs = printerSearch.length > 0
+    ? PRINTER_DATABASE.filter(p =>
+        p.name.toLowerCase().includes(printerSearch.toLowerCase()) ||
+        p.brand.toLowerCase().includes(printerSearch.toLowerCase())
+      ).slice(0, 8)
+    : PRINTER_DATABASE.slice(0, 8)
+
+  function selectPrinterSpec(spec: PrinterSpec) {
+    setSelectedSpec(spec)
+    setPrinterSearch(spec.name)
+    setShowPrinterDropdown(false)
+    setNewPrinter(prev => ({
+      ...prev,
+      name: prev.name || spec.name,
+      model: spec.name,
+      buildX: String(spec.buildX),
+      buildY: String(spec.buildY),
+      buildZ: String(spec.buildZ),
+      nozzle: spec.defaultNozzle,
+      materials: spec.defaultMaterials,
+    }))
+  }
 
   // Order state
   const [orders, setOrders] = useState<Order[]>([])
@@ -287,36 +385,48 @@ export default function DashboardPage() {
     e.preventDefault()
     if (!farmId) return
 
-    const { data, error } = await supabase
-      .from('printers')
-      .insert({
-        farm_id: farmId,
-        name: newPrinter.name,
-        model: newPrinter.model,
+    const model = newPrinter.model || printerSearch
+    if (!model.trim()) {
+      alert('Wybierz lub wpisz model drukarki')
+      return
+    }
+
+    const res = await fetch('/api/printers', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        name: newPrinter.name || model,
+        model: model,
         build_x: parseInt(newPrinter.buildX) || 0,
         build_y: parseInt(newPrinter.buildY) || 0,
         build_z: parseInt(newPrinter.buildZ) || 0,
         nozzle: newPrinter.nozzle,
         materials: newPrinter.materials,
-        status: 'idle',
-      })
-      .select()
-      .single()
+      }),
+    })
 
-    if (error) {
-      alert('Błąd dodawania drukarki: ' + error.message)
+    if (!res.ok) {
+      const err = await res.json()
+      alert('Błąd dodawania drukarki: ' + (err.error || 'Unknown error'))
       return
     }
 
+    const data = await res.json()
     setPrinters(prev => [...prev, data])
     setShowAddModal(false)
-    setNewPrinter({ name: '', model: PRINTER_MODELS[0], buildX: '256', buildY: '256', buildZ: '256', nozzle: '0.4', materials: [] })
+    setNewPrinter({ name: '', model: '', buildX: '256', buildY: '256', buildZ: '256', nozzle: '0.4', materials: [] })
+    setPrinterSearch('')
+    setSelectedSpec(null)
   }
 
   async function removePrinter(id: string) {
-    const { error } = await supabase.from('printers').delete().eq('id', id)
-    if (error) {
-      alert('Błąd usuwania drukarki: ' + error.message)
+    const res = await fetch(`/api/printers?id=${id}`, {
+      method: 'DELETE',
+    })
+
+    if (!res.ok) {
+      const err = await res.json()
+      alert('Błąd usuwania drukarki: ' + (err.error || 'Unknown error'))
       return
     }
     setPrinters(prev => prev.filter(p => p.id !== id))
@@ -354,7 +464,6 @@ export default function DashboardPage() {
     if (!farmId) return
 
     const payload = {
-      farm_id: farmId,
       type: newFilament.type,
       color: newFilament.color,
       brand: newFilament.brand,
@@ -364,23 +473,22 @@ export default function DashboardPage() {
     }
 
     if (editingFilament) {
-      const { data, error } = await supabase
-        .from('filaments')
-        .update(payload)
-        .eq('id', editingFilament.id)
-        .select()
-        .single()
-
-      if (error) { alert('Błąd edycji filamentu: ' + error.message); return }
+      const res = await fetch(`/api/filaments?id=${editingFilament.id}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) { const err = await res.json(); alert('Błąd edycji filamentu: ' + (err.error || 'Unknown')); return }
+      const data = await res.json()
       setFilaments(prev => prev.map(f => f.id === editingFilament.id ? data : f))
     } else {
-      const { data, error } = await supabase
-        .from('filaments')
-        .insert(payload)
-        .select()
-        .single()
-
-      if (error) { alert('Błąd dodawania filamentu: ' + error.message); return }
+      const res = await fetch('/api/filaments', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      })
+      if (!res.ok) { const err = await res.json(); alert('Błąd dodawania filamentu: ' + (err.error || 'Unknown')); return }
+      const data = await res.json()
       setFilaments(prev => [...prev, data])
     }
 
@@ -390,8 +498,10 @@ export default function DashboardPage() {
   }
 
   async function removeFilament(id: string) {
-    const { error } = await supabase.from('filaments').delete().eq('id', id)
-    if (error) { alert('Błąd usuwania filamentu: ' + error.message); return }
+    const res = await fetch(`/api/filaments?id=${id}`, {
+      method: 'DELETE',
+    })
+    if (!res.ok) { const err = await res.json(); alert('Błąd usuwania filamentu: ' + (err.error || 'Unknown')); return }
     setFilaments(prev => prev.filter(f => f.id !== id))
   }
 
@@ -1131,32 +1241,61 @@ export default function DashboardPage() {
           <div className="w-full max-w-lg rounded-2xl p-6 max-h-[90vh] overflow-y-auto" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.08)' }}>
             <div className="flex items-center justify-between mb-6">
               <h2 className="text-lg font-bold text-white">Dodaj drukarkę</h2>
-              <button onClick={() => setShowAddModal(false)} className="text-slate-500 hover:text-white cursor-pointer bg-transparent border-none text-xl leading-none">&times;</button>
+              <button onClick={() => { setShowAddModal(false); setPrinterSearch(''); setSelectedSpec(null); setShowPrinterDropdown(false) }} className="text-slate-500 hover:text-white cursor-pointer bg-transparent border-none text-xl leading-none">&times;</button>
             </div>
 
             <form onSubmit={handleAddPrinter} className="flex flex-col gap-4">
-              <div>
-                <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Nazwa drukarki</label>
+              <div className="relative">
+                <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Model drukarki</label>
                 <input
-                  required
-                  value={newPrinter.name}
-                  onChange={e => setNewPrinter(p => ({ ...p, name: e.target.value }))}
-                  placeholder="np. Bambu X1C #1"
+                  value={printerSearch}
+                  onChange={e => { setPrinterSearch(e.target.value); setShowPrinterDropdown(true); setSelectedSpec(null); setNewPrinter(p => ({ ...p, model: e.target.value })) }}
+                  onFocus={() => setShowPrinterDropdown(true)}
+                  onBlur={() => setTimeout(() => setShowPrinterDropdown(false), 200)}
+                  placeholder="Zacznij pisać np. Bambu, Prusa, Ender..."
                   className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
                   style={inputStyle}
                 />
+                {showPrinterDropdown && filteredPrinterSpecs.length > 0 && (
+                  <div className="absolute z-50 w-full mt-1 rounded-xl overflow-hidden max-h-64 overflow-y-auto" style={{ background: '#1e293b', border: '1px solid rgba(255,255,255,0.1)', boxShadow: '0 8px 30px rgba(0,0,0,0.5)' }}>
+                    {filteredPrinterSpecs.map(spec => (
+                      <button
+                        key={spec.name}
+                        type="button"
+                        onMouseDown={e => e.preventDefault()}
+                        onClick={() => selectPrinterSpec(spec)}
+                        className="w-full px-4 py-3 text-left cursor-pointer transition-colors border-none flex items-center justify-between"
+                        style={{ background: 'transparent', color: '#fff' }}
+                        onMouseEnter={e => e.currentTarget.style.background = 'rgba(139,92,246,0.1)'}
+                        onMouseLeave={e => e.currentTarget.style.background = 'transparent'}
+                      >
+                        <div>
+                          <span className="font-medium text-[14px]">{spec.name}</span>
+                          <span className="text-slate-500 text-[12px] ml-2">{spec.brand}</span>
+                        </div>
+                        <span className="text-slate-500 text-[12px]">{spec.buildX}×{spec.buildY}×{spec.buildZ}</span>
+                      </button>
+                    ))}
+                  </div>
+                )}
+                {selectedSpec && (
+                  <div className="mt-2 rounded-lg px-3 py-2 flex items-center gap-2 text-[13px]" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
+                    <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><polyline points="20 6 9 17 4 12"/></svg>
+                    <span style={{ color: '#22C55E' }}>Auto-uzupełniono: {selectedSpec.buildX}×{selectedSpec.buildY}×{selectedSpec.buildZ} mm, dysza {selectedSpec.defaultNozzle}, {selectedSpec.defaultMaterials.length} materiałów</span>
+                  </div>
+                )}
               </div>
 
               <div>
-                <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Model</label>
-                <select
-                  value={newPrinter.model}
-                  onChange={e => setNewPrinter(p => ({ ...p, model: e.target.value }))}
-                  className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none appearance-none cursor-pointer"
+                <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Nazwa własna (opcjonalna)</label>
+                <input
+                  value={newPrinter.name}
+                  onChange={e => setNewPrinter(p => ({ ...p, name: e.target.value }))}
+                  placeholder={selectedSpec ? `np. ${selectedSpec.name} #1` : 'np. Moja drukarka #1'}
+                  className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
                   style={inputStyle}
-                >
-                  {PRINTER_MODELS.map(m => <option key={m} value={m}>{m}</option>)}
-                </select>
+                />
+                <p className="text-slate-600 text-[11px] mt-1">Pomaga rozróżnić drukarki tego samego modelu</p>
               </div>
 
               <div>
@@ -1169,14 +1308,16 @@ export default function DashboardPage() {
                         type="number"
                         min="1"
                         value={newPrinter[dim]}
-                        onChange={e => setNewPrinter(p => ({ ...p, [dim]: e.target.value }))}
+                        onChange={e => { if (!selectedSpec) setNewPrinter(p => ({ ...p, [dim]: e.target.value })) }}
+                        readOnly={!!selectedSpec}
                         className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none"
-                        style={inputStyle}
+                        style={{ ...inputStyle, opacity: selectedSpec ? 0.6 : 1, cursor: selectedSpec ? 'not-allowed' : 'text' }}
                       />
                       <span className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-600 text-[12px]">{['X', 'Y', 'Z'][i]}</span>
                     </div>
                   ))}
                 </div>
+                {selectedSpec && <p className="text-slate-600 text-[11px] mt-1">Dane z bazy drukarek — jeśli chcesz zmienić, wyczyść model</p>}
               </div>
 
               <div>

@@ -1,15 +1,84 @@
 'use client'
 
-import { useState, useRef } from 'react'
+import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 const MATERIALS = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon']
-const COLORS = ['Biały', 'Czarny', 'Szary', 'Czerwony', 'Niebieski', 'Zielony', 'Żółty', 'Pomarańczowy']
+const MATERIAL_ICONS: Record<string, string> = {
+  PLA: '🌱', PETG: '💧', ABS: '🔥', TPU: '🧶', ASA: '☀️', Nylon: '⚙️',
+}
+const MATERIAL_LABELS: Record<string, string> = {
+  PLA: 'Uniwersalny', PETG: 'Odporny', ABS: 'Wytrzymały', TPU: 'Elastyczny', ASA: 'UV-odporny', Nylon: 'Mechaniczny',
+}
+
+const COLOR_OPTIONS = [
+  { name: 'Biały', hex: '#ffffff' },
+  { name: 'Czarny', hex: '#1a1a1a' },
+  { name: 'Szary', hex: '#9ca3af' },
+  { name: 'Czerwony', hex: '#ef4444' },
+  { name: 'Niebieski', hex: '#3b82f6' },
+  { name: 'Zielony', hex: '#22c55e' },
+  { name: 'Żółty', hex: '#eab308' },
+  { name: 'Pomarańczowy', hex: '#f97316' },
+  { name: 'Fioletowy', hex: '#a855f7' },
+  { name: 'Różowy', hex: '#ec4899' },
+] as const
+
+const COLORS = COLOR_OPTIONS.map(c => c.name)
 const QUALITIES = ['Draft (0.3mm)', 'Standard (0.2mm)', 'High (0.12mm)']
 const INFILLS = ['15%', '30%', '50%', '100%']
 
+interface StlDimensions {
+  x: number
+  y: number
+  z: number
+  volumeMm3: number
+}
+
+function parseStlBinary(buffer: ArrayBuffer): StlDimensions | null {
+  try {
+    const view = new DataView(buffer)
+    if (buffer.byteLength < 84) return null
+    const triangleCount = view.getUint32(80, true)
+    const expectedSize = 84 + triangleCount * 50
+    if (buffer.byteLength < expectedSize) return null
+
+    let minX = Infinity, minY = Infinity, minZ = Infinity
+    let maxX = -Infinity, maxY = -Infinity, maxZ = -Infinity
+
+    for (let i = 0; i < triangleCount; i++) {
+      const offset = 84 + i * 50 + 12 // skip normal (3 floats = 12 bytes)
+      for (let v = 0; v < 3; v++) {
+        const vOffset = offset + v * 12
+        const x = view.getFloat32(vOffset, true)
+        const y = view.getFloat32(vOffset + 4, true)
+        const z = view.getFloat32(vOffset + 8, true)
+        if (x < minX) minX = x
+        if (x > maxX) maxX = x
+        if (y < minY) minY = y
+        if (y > maxY) maxY = y
+        if (z < minZ) minZ = z
+        if (z > maxZ) maxZ = z
+      }
+    }
+
+    const dx = maxX - minX
+    const dy = maxY - minY
+    const dz = maxZ - minZ
+    return { x: dx, y: dy, z: dz, volumeMm3: dx * dy * dz }
+  } catch {
+    return null
+  }
+}
+
+interface FileDimensions {
+  dims: StlDimensions | null
+  isStl: boolean
+}
+
 export default function UploadPage() {
   const [files, setFiles] = useState<File[]>([])
+  const [fileDimensions, setFileDimensions] = useState<FileDimensions[]>([])
   const [dragover, setDragover] = useState(false)
   const [material, setMaterial] = useState(MATERIALS[0])
   const [color, setColor] = useState(COLORS[0])
@@ -36,8 +105,33 @@ export default function UploadPage() {
     }
     if (valid.length > 0) {
       setFiles(prev => [...prev, ...valid])
+      // Parse STL dimensions for each new file
+      valid.forEach(f => {
+        const ext = f.name.split('.').pop()?.toLowerCase()
+        if (ext === 'stl') {
+          f.arrayBuffer().then(buf => {
+            const dims = parseStlBinary(buf)
+            setFileDimensions(prev => [...prev, { dims, isStl: true }])
+          }).catch(() => {
+            setFileDimensions(prev => [...prev, { dims: null, isStl: true }])
+          })
+        } else {
+          setFileDimensions(prev => [...prev, { dims: null, isStl: false }])
+        }
+      })
     }
   }
+
+  // Get the max dimensions across all STL files (for bed size filtering)
+  const maxDims = fileDimensions.reduce<{ x: number; y: number; z: number } | null>((acc, fd) => {
+    if (!fd.dims) return acc
+    if (!acc) return { x: fd.dims.x, y: fd.dims.y, z: fd.dims.z }
+    return {
+      x: Math.max(acc.x, fd.dims.x),
+      y: Math.max(acc.y, fd.dims.y),
+      z: Math.max(acc.z, fd.dims.z),
+    }
+  }, null)
 
   function handleDrop(e: React.DragEvent) {
     e.preventDefault()
@@ -49,6 +143,7 @@ export default function UploadPage() {
 
   function removeFile(index: number) {
     setFiles(prev => prev.filter((_, i) => i !== index))
+    setFileDimensions(prev => prev.filter((_, i) => i !== index))
   }
 
   function formatSize(bytes: number) {
@@ -120,7 +215,7 @@ export default function UploadPage() {
               <div className="flex items-center justify-between mb-4">
                 <h2 className="text-lg font-semibold text-white">Pliki ({files.length})</h2>
                 <button
-                  onClick={() => setFiles([])}
+                  onClick={() => { setFiles([]); setFileDimensions([]) }}
                   className="text-sm text-slate-500 hover:text-red-400 transition-colors cursor-pointer bg-transparent border-none"
                 >
                   Wyczyść wszystko
@@ -137,6 +232,31 @@ export default function UploadPage() {
                       <div>
                         <p className="text-white font-semibold text-[15px]">{file.name}</p>
                         <p className="text-slate-500 text-[13px]">{formatSize(file.size)}</p>
+                        {fileDimensions[index] && (
+                          fileDimensions[index].dims ? (
+                            <div className="mt-1">
+                              <p className="text-[12px]" style={{ color: '#a78bfa' }}>
+                                📐 {fileDimensions[index].dims!.x.toFixed(1)} × {fileDimensions[index].dims!.y.toFixed(1)} × {fileDimensions[index].dims!.z.toFixed(1)} mm
+                              </p>
+                              <p className="text-[11px] text-slate-500">
+                                ~{(() => {
+                                  const vol = fileDimensions[index].dims!.volumeMm3
+                                  const infillPct = parseInt(infill) / 100
+                                  const density = 1.24 // g/cm³ for PLA approx
+                                  const filamentDiameter = 1.75 // mm
+                                  const filamentArea = Math.PI * (filamentDiameter / 2) ** 2 // mm²
+                                  const massG = (vol / 1000) * infillPct * density * 0.3 // rough fill factor
+                                  const lengthMm = (massG / density) * 1000 / filamentArea
+                                  return (lengthMm / 1000).toFixed(1)
+                                })()} m filamentu (szacunkowo)
+                              </p>
+                            </div>
+                          ) : fileDimensions[index].isStl ? (
+                            <p className="text-[11px] text-slate-500 mt-1">Nie udało się odczytać wymiarów</p>
+                          ) : (
+                            <p className="text-[11px] text-slate-500 mt-1">Wymiary niedostępne (tylko STL)</p>
+                          )
+                        )}
                       </div>
                     </div>
                     <button
@@ -175,30 +295,56 @@ export default function UploadPage() {
               <h2 className="text-lg font-semibold text-white mb-5">Konfiguracja wydruku</h2>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                {/* Material */}
-                <div>
-                  <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Materiał</label>
-                  <select
-                    value={material}
-                    onChange={e => setMaterial(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none appearance-none cursor-pointer"
-                    style={inputStyle}
-                  >
-                    {MATERIALS.map(m => <option key={m} value={m}>{m}</option>)}
-                  </select>
+                {/* Material tiles */}
+                <div className="md:col-span-2">
+                  <label className="block text-slate-400 text-[13px] font-medium mb-2">Materiał</label>
+                  <div className="grid grid-cols-3 sm:grid-cols-6 gap-2">
+                    {MATERIALS.map(m => (
+                      <button
+                        key={m}
+                        type="button"
+                        onClick={() => setMaterial(m)}
+                        className="flex flex-col items-center gap-1 px-3 py-3 rounded-xl cursor-pointer transition-all border-none"
+                        style={{
+                          background: material === m ? 'rgba(139,92,246,0.2)' : 'rgba(255,255,255,0.03)',
+                          outline: material === m ? '2px solid #8B5CF6' : '1px solid rgba(255,255,255,0.06)',
+                        }}
+                      >
+                        <span className="text-xl">{MATERIAL_ICONS[m]}</span>
+                        <span className="text-[13px] font-semibold" style={{ color: material === m ? '#8B5CF6' : '#fff' }}>{m}</span>
+                        <span className="text-[10px]" style={{ color: material === m ? '#a78bfa' : '#64748b' }}>{MATERIAL_LABELS[m]}</span>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
-                {/* Color */}
-                <div>
-                  <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Kolor</label>
-                  <select
-                    value={color}
-                    onChange={e => setColor(e.target.value)}
-                    className="w-full px-4 py-3 rounded-xl text-white text-[15px] outline-none appearance-none cursor-pointer"
-                    style={inputStyle}
-                  >
-                    {COLORS.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select>
+                {/* Color swatches */}
+                <div className="md:col-span-2">
+                  <label className="block text-slate-400 text-[13px] font-medium mb-2">Kolor</label>
+                  <div className="flex flex-wrap gap-3">
+                    {COLOR_OPTIONS.map(c => (
+                      <button
+                        key={c.name}
+                        type="button"
+                        onClick={() => setColor(c.name)}
+                        className="flex flex-col items-center gap-1.5 cursor-pointer border-none bg-transparent p-0"
+                        title={c.name}
+                      >
+                        <div
+                          className="w-10 h-10 rounded-full transition-all"
+                          style={{
+                            background: c.hex,
+                            outline: color === c.name ? '3px solid #8B5CF6' : '2px solid rgba(255,255,255,0.1)',
+                            outlineOffset: color === c.name ? '2px' : '0px',
+                            boxShadow: color === c.name ? '0 0 12px rgba(139,92,246,0.4)' : 'none',
+                          }}
+                        />
+                        {color === c.name && (
+                          <span className="text-[11px] font-medium" style={{ color: '#a78bfa' }}>{c.name}</span>
+                        )}
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Quality */}
@@ -314,6 +460,11 @@ export default function UploadPage() {
                   })
                   if (files.length > 0) {
                     params.set('files', files.map(f => f.name).join(','))
+                  }
+                  if (maxDims) {
+                    params.set('maxX', maxDims.x.toFixed(1))
+                    params.set('maxY', maxDims.y.toFixed(1))
+                    params.set('maxZ', maxDims.z.toFixed(1))
                   }
                   router.push(`/marketplace?${params.toString()}`)
                 }}
