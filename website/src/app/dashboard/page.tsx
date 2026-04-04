@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback } from 'react'
 import QRCode from 'qrcode'
 import { useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase'
+// Using simple API routes with service role key
 import type { User } from '@supabase/supabase-js'
 
 type Tab = 'drukarki' | 'zamowienia' | 'filamenty' | 'automatyzacja' | 'profil'
@@ -391,28 +392,28 @@ export default function DashboardPage() {
       return
     }
 
-    const res = await fetch('/api/printers', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        name: newPrinter.name || model,
-        model: model,
-        build_x: parseInt(newPrinter.buildX) || 0,
-        build_y: parseInt(newPrinter.buildY) || 0,
-        build_z: parseInt(newPrinter.buildZ) || 0,
-        nozzle: newPrinter.nozzle,
-        materials: newPrinter.materials,
-      }),
-    })
-
-    if (!res.ok) {
-      const err = await res.json()
-      alert('Błąd dodawania drukarki: ' + (err.error || 'Unknown error'))
+    try {
+      const res = await fetch('/api/add-printer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          farm_id: farmId,
+          name: newPrinter.name || model,
+          model: model,
+          build_x: parseInt(newPrinter.buildX) || 0,
+          build_y: parseInt(newPrinter.buildY) || 0,
+          build_z: parseInt(newPrinter.buildZ) || 0,
+          nozzle: newPrinter.nozzle,
+          materials: newPrinter.materials,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) { alert('Błąd: ' + (data.error || 'Unknown')); return }
+      setPrinters(prev => [...prev, data])
+    } catch (e) {
+      alert('Błąd sieci: ' + String(e))
       return
     }
-
-    const data = await res.json()
-    setPrinters(prev => [...prev, data])
     setShowAddModal(false)
     setNewPrinter({ name: '', model: '', buildX: '256', buildY: '256', buildZ: '256', nozzle: '0.4', materials: [] })
     setPrinterSearch('')
@@ -420,15 +421,14 @@ export default function DashboardPage() {
   }
 
   async function removePrinter(id: string) {
-    const res = await fetch(`/api/printers?id=${id}`, {
-      method: 'DELETE',
-    })
-
-    if (!res.ok) {
-      const err = await res.json()
-      alert('Błąd usuwania drukarki: ' + (err.error || 'Unknown error'))
-      return
-    }
+    try {
+      const res = await fetch('/api/delete-printer', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      if (!res.ok) { const d = await res.json(); alert('Błąd: ' + d.error); return }
+    } catch (e) { alert('Błąd sieci: ' + String(e)); return }
     setPrinters(prev => prev.filter(p => p.id !== id))
   }
 
@@ -473,23 +473,27 @@ export default function DashboardPage() {
     }
 
     if (editingFilament) {
-      const res = await fetch(`/api/filaments?id=${editingFilament.id}`, {
-        method: 'PUT',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) { const err = await res.json(); alert('Błąd edycji filamentu: ' + (err.error || 'Unknown')); return }
-      const data = await res.json()
-      setFilaments(prev => prev.map(f => f.id === editingFilament.id ? data : f))
+      try {
+        const res = await fetch('/api/update-filament', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: editingFilament.id, ...payload }),
+        })
+        const data = await res.json()
+        if (!res.ok) { alert('Błąd: ' + data.error); return }
+        setFilaments(prev => prev.map(f => f.id === editingFilament.id ? data : f))
+      } catch (e) { alert('Błąd sieci: ' + String(e)); return }
     } else {
-      const res = await fetch('/api/filaments', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      })
-      if (!res.ok) { const err = await res.json(); alert('Błąd dodawania filamentu: ' + (err.error || 'Unknown')); return }
-      const data = await res.json()
-      setFilaments(prev => [...prev, data])
+      try {
+        const res = await fetch('/api/add-filament', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ farm_id: farmId, ...payload }),
+        })
+        const data = await res.json()
+        if (!res.ok) { alert('Błąd: ' + data.error); return }
+        setFilaments(prev => [...prev, data])
+      } catch (e) { alert('Błąd sieci: ' + String(e)); return }
     }
 
     setShowFilamentModal(false)
@@ -498,10 +502,14 @@ export default function DashboardPage() {
   }
 
   async function removeFilament(id: string) {
-    const res = await fetch(`/api/filaments?id=${id}`, {
-      method: 'DELETE',
-    })
-    if (!res.ok) { const err = await res.json(); alert('Błąd usuwania filamentu: ' + (err.error || 'Unknown')); return }
+    try {
+      const res = await fetch('/api/delete-filament', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id }),
+      })
+      if (!res.ok) { const d = await res.json(); alert('Błąd: ' + d.error); return }
+    } catch (e) { alert('Błąd sieci: ' + String(e)); return }
     setFilaments(prev => prev.filter(f => f.id !== id))
   }
 
