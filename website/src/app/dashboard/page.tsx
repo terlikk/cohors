@@ -311,11 +311,13 @@ export default function DashboardPage() {
       setUser(user)
 
       // Fetch user's farm
-      const { data: farm } = await supabase
+      const { data: farm, error: farmError } = await supabase
         .from('farms')
         .select('id, slug')
         .eq('user_id', user.id)
         .single()
+
+      console.log('[PrintFlow] Farm query:', farm, 'Error:', farmError)
 
       if (farm) {
         setFarmId(farm.id)
@@ -382,16 +384,15 @@ export default function DashboardPage() {
     }))
   }
 
-  async function handleAddPrinter(e: React.FormEvent) {
-    e.preventDefault()
-    if (!farmId) return
+  const [addingPrinter, setAddingPrinter] = useState(false)
 
+  async function handleAddPrinter() {
+    if (addingPrinter) return
     const model = newPrinter.model || printerSearch
-    if (!model.trim()) {
-      alert('Wybierz lub wpisz model drukarki')
-      return
-    }
+    if (!model.trim()) { alert('Wpisz lub wybierz model drukarki'); return }
+    if (!farmId) { alert('Nie znaleziono farmy — wyloguj się i zaloguj ponownie'); return }
 
+    setAddingPrinter(true)
     try {
       const res = await fetch('/api/add-printer', {
         method: 'POST',
@@ -399,25 +400,25 @@ export default function DashboardPage() {
         body: JSON.stringify({
           farm_id: farmId,
           name: newPrinter.name || model,
-          model: model,
-          build_x: parseInt(newPrinter.buildX) || 0,
-          build_y: parseInt(newPrinter.buildY) || 0,
-          build_z: parseInt(newPrinter.buildZ) || 0,
+          model,
+          build_x: parseInt(newPrinter.buildX) || 256,
+          build_y: parseInt(newPrinter.buildY) || 256,
+          build_z: parseInt(newPrinter.buildZ) || 256,
           nozzle: newPrinter.nozzle,
-          materials: newPrinter.materials,
+          materials: newPrinter.materials.length > 0 ? newPrinter.materials : ['PLA'],
         }),
       })
       const data = await res.json()
-      if (!res.ok) { alert('Błąd: ' + (data.error || 'Unknown')); return }
+      if (!res.ok) { alert('Błąd: ' + (data.error || 'Nieznany błąd')); setAddingPrinter(false); return }
       setPrinters(prev => [...prev, data])
+      setShowAddModal(false)
+      setNewPrinter({ name: '', model: '', buildX: '256', buildY: '256', buildZ: '256', nozzle: '0.4', materials: [] })
+      setPrinterSearch('')
+      setSelectedSpec(null)
     } catch (e) {
       alert('Błąd sieci: ' + String(e))
-      return
     }
-    setShowAddModal(false)
-    setNewPrinter({ name: '', model: '', buildX: '256', buildY: '256', buildZ: '256', nozzle: '0.4', materials: [] })
-    setPrinterSearch('')
-    setSelectedSpec(null)
+    setAddingPrinter(false)
   }
 
   async function removePrinter(id: string) {
@@ -459,9 +460,12 @@ export default function DashboardPage() {
     })
   }, [farmSlug])
 
-  async function handleAddFilament(e: React.FormEvent) {
-    e.preventDefault()
-    if (!farmId) return
+  const [addingFilament, setAddingFilament] = useState(false)
+
+  async function handleAddFilament() {
+    if (addingFilament) return
+    if (!farmId) { alert('Nie znaleziono farmy — wyloguj się i zaloguj ponownie'); return }
+    setAddingFilament(true)
 
     const payload = {
       type: newFilament.type,
@@ -499,6 +503,7 @@ export default function DashboardPage() {
     setShowFilamentModal(false)
     setEditingFilament(null)
     setNewFilament({ type: FILAMENT_TYPES[0], color: FILAMENT_COLORS[0].name, brand: '', pricePerKg: '', stockGrams: '', lowStockAlert: '500' })
+    setAddingFilament(false)
   }
 
   async function removeFilament(id: string) {
@@ -1142,7 +1147,7 @@ export default function DashboardPage() {
               <button onClick={() => { setShowFilamentModal(false); setEditingFilament(null) }} className="text-slate-500 hover:text-white cursor-pointer bg-transparent border-none text-xl leading-none">&times;</button>
             </div>
 
-            <form onSubmit={handleAddFilament} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4">
               <div>
                 <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Typ filamentu</label>
                 <select
@@ -1180,7 +1185,7 @@ export default function DashboardPage() {
               <div>
                 <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Marka</label>
                 <input
-                  required
+
                   value={newFilament.brand}
                   onChange={e => setNewFilament(p => ({ ...p, brand: e.target.value }))}
                   placeholder="np. Prusament, Devil Design"
@@ -1193,7 +1198,7 @@ export default function DashboardPage() {
                 <div>
                   <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Cena za kg (zł)</label>
                   <input
-                    required
+  
                     type="number"
                     min="0"
                     step="0.01"
@@ -1207,7 +1212,7 @@ export default function DashboardPage() {
                 <div>
                   <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Stan (gramy)</label>
                   <input
-                    required
+  
                     type="number"
                     min="0"
                     value={newFilament.stockGrams}
@@ -1232,13 +1237,15 @@ export default function DashboardPage() {
               </div>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleAddFilament}
+                disabled={addingFilament}
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-[15px] border-none cursor-pointer transition-all hover:opacity-90 mt-2"
-                style={{ background: '#22C55E' }}
+                style={{ background: addingFilament ? '#666' : '#22C55E' }}
               >
-                {editingFilament ? 'Zapisz zmiany' : 'Dodaj filament'}
+                {addingFilament ? 'Dodawanie...' : (editingFilament ? 'Zapisz zmiany' : 'Dodaj filament')}
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}
@@ -1252,7 +1259,7 @@ export default function DashboardPage() {
               <button onClick={() => { setShowAddModal(false); setPrinterSearch(''); setSelectedSpec(null); setShowPrinterDropdown(false) }} className="text-slate-500 hover:text-white cursor-pointer bg-transparent border-none text-xl leading-none">&times;</button>
             </div>
 
-            <form onSubmit={handleAddPrinter} className="flex flex-col gap-4">
+            <div className="flex flex-col gap-4">
               <div className="relative">
                 <label className="block text-slate-400 text-[13px] font-medium mb-1.5">Model drukarki</label>
                 <input
@@ -1312,7 +1319,6 @@ export default function DashboardPage() {
                   {(['buildX', 'buildY', 'buildZ'] as const).map((dim, i) => (
                     <div key={dim} className="relative">
                       <input
-                        required
                         type="number"
                         min="1"
                         value={newPrinter[dim]}
@@ -1374,13 +1380,15 @@ export default function DashboardPage() {
               </div>
 
               <button
-                type="submit"
+                type="button"
+                onClick={handleAddPrinter}
+                disabled={addingPrinter}
                 className="w-full py-3.5 rounded-xl text-white font-semibold text-[15px] border-none cursor-pointer transition-all hover:opacity-90 mt-2"
-                style={{ background: '#22C55E' }}
+                style={{ background: addingPrinter ? '#666' : '#22C55E' }}
               >
-                Dodaj drukarkę
+                {addingPrinter ? 'Dodawanie...' : 'Dodaj drukarkę'}
               </button>
-            </form>
+            </div>
           </div>
         </div>
       )}
