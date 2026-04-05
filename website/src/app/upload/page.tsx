@@ -4,8 +4,11 @@ import { useState, useRef, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 
 const MATERIALS = ['PLA', 'PETG', 'ABS', 'TPU', 'ASA', 'Nylon']
-const MATERIAL_ICONS: Record<string, string> = {
-  PLA: '🌱', PETG: '💧', ABS: '🔥', TPU: '🧶', ASA: '☀️', Nylon: '⚙️',
+const MATERIAL_DENSITY: Record<string, number> = {
+  PLA: 1.24, PETG: 1.27, ABS: 1.04, TPU: 1.21, ASA: 1.07, Nylon: 1.14,
+}
+const QUALITY_SPEED: Record<string, number> = {
+  'Draft (0.3mm)': 20, 'Standard (0.2mm)': 12, 'High (0.12mm)': 8,
 }
 const MATERIAL_LABELS: Record<string, string> = {
   PLA: 'Uniwersalny', PETG: 'Odporny', ABS: 'Wytrzymały', TPU: 'Elastyczny', ASA: 'UV-odporny', Nylon: 'Mechaniczny',
@@ -152,6 +155,33 @@ export default function UploadPage() {
       : (bytes / (1024 * 1024)).toFixed(1) + ' MB'
   }
 
+  // Compute real estimation from STL data
+  function calcEstimation() {
+    const totalVolumeMm3 = fileDimensions.reduce((sum, fd) => sum + (fd.dims?.volumeMm3 || 0), 0)
+    const hasStlData = fileDimensions.some(fd => fd.dims)
+    if (!hasStlData || totalVolumeMm3 === 0) return null
+
+    const infillPct = parseInt(infill) / 100
+    const fillFactor = infillPct * 0.3 + 0.15
+    const volumeCm3 = (totalVolumeMm3 / 1000) * fillFactor
+    const density = MATERIAL_DENSITY[material] || 1.24
+    const filamentGrams = volumeCm3 * density
+    const filamentDiameter = 1.75
+    const filamentArea = Math.PI * (filamentDiameter / 2) ** 2
+    const filamentMeters = filamentGrams / (filamentArea * density) / 100 * 1000
+    const speedGPerH = QUALITY_SPEED[quality] || 12
+    const timeHoursSingle = filamentGrams / speedGPerH
+
+    return {
+      filamentGrams: filamentGrams * quantity,
+      filamentMeters: filamentMeters * quantity,
+      timeHoursSingle,
+      timeHoursTotal: timeHoursSingle * quantity,
+    }
+  }
+
+  const estimation = calcEstimation()
+
   const inputStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
 
   return (
@@ -236,19 +266,18 @@ export default function UploadPage() {
                           fileDimensions[index].dims ? (
                             <div className="mt-1">
                               <p className="text-[12px]" style={{ color: '#a78bfa' }}>
-                                📐 {fileDimensions[index].dims!.x.toFixed(1)} × {fileDimensions[index].dims!.y.toFixed(1)} × {fileDimensions[index].dims!.z.toFixed(1)} mm
+                                {fileDimensions[index].dims!.x.toFixed(1)} x {fileDimensions[index].dims!.y.toFixed(1)} x {fileDimensions[index].dims!.z.toFixed(1)} mm
                               </p>
                               <p className="text-[11px] text-slate-500">
                                 ~{(() => {
                                   const vol = fileDimensions[index].dims!.volumeMm3
                                   const infillPct = parseInt(infill) / 100
-                                  const density = 1.24 // g/cm³ for PLA approx
-                                  const filamentDiameter = 1.75 // mm
-                                  const filamentArea = Math.PI * (filamentDiameter / 2) ** 2 // mm²
-                                  const massG = (vol / 1000) * infillPct * density * 0.3 // rough fill factor
-                                  const lengthMm = (massG / density) * 1000 / filamentArea
-                                  return (lengthMm / 1000).toFixed(1)
-                                })()} m filamentu (szacunkowo)
+                                  const fillFactor = infillPct * 0.3 + 0.15
+                                  const density = MATERIAL_DENSITY[material] || 1.24
+                                  const volumeCm3 = (vol / 1000) * fillFactor
+                                  const grams = volumeCm3 * density
+                                  return grams.toFixed(0)
+                                })()}g filamentu ({material})
                               </p>
                             </div>
                           ) : fileDimensions[index].isStl ? (
@@ -310,7 +339,7 @@ export default function UploadPage() {
                           outline: material === m ? '2px solid #8B5CF6' : '1px solid rgba(255,255,255,0.06)',
                         }}
                       >
-                        <span className="text-xl">{MATERIAL_ICONS[m]}</span>
+                        <span className="text-[13px] font-bold" style={{ color: material === m ? '#a78bfa' : '#94a3b8' }}>{m.charAt(0)}</span>
                         <span className="text-[13px] font-semibold" style={{ color: material === m ? '#8B5CF6' : '#fff' }}>{m}</span>
                         <span className="text-[10px]" style={{ color: material === m ? '#a78bfa' : '#64748b' }}>{MATERIAL_LABELS[m]}</span>
                       </button>
@@ -413,40 +442,35 @@ export default function UploadPage() {
               </div>
 
               {/* Estimate card */}
-              {(() => {
-                const AVG_PRICES: Record<string, number> = { PLA: 89, PETG: 99, ABS: 109, TPU: 139, ASA: 119, Nylon: 149 }
-                const estFilamentGrams = quantity * 18
-                const estPrintHours = quantity * 2
-                const materialPricePerKg = AVG_PRICES[material] || 89
-                const estCostLow = (estFilamentGrams / 1000) * materialPricePerKg * 1.3
-                const estCostHigh = (estFilamentGrams / 1000) * materialPricePerKg * 2.2
-
-                return (
-                  <div className="mt-5 rounded-xl p-4" style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)' }}>
-                    <div className="flex items-center gap-2 mb-3">
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                      <span className="text-sm font-semibold" style={{ color: '#a78bfa' }}>Szacunkowe zużycie</span>
+              <div className="mt-5 rounded-xl p-4" style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                <div className="flex items-center gap-2 mb-3">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                  <span className="text-sm font-semibold" style={{ color: '#a78bfa' }}>Szacunkowe zuzycie</span>
+                </div>
+                {estimation ? (
+                  <div className="grid grid-cols-2 gap-3">
+                    <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                      <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Filament</p>
+                      <p className="text-white font-semibold text-sm">~{estimation.filamentGrams.toFixed(0)}g</p>
+                      <p className="text-slate-500 text-[11px]">~{estimation.filamentMeters.toFixed(1)} m ({(estimation.filamentGrams / 1000).toFixed(2)} kg)</p>
                     </div>
-                    <div className="grid grid-cols-2 gap-3">
-                      <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                        <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Filament</p>
-                        <p className="text-white font-semibold text-sm">~{estFilamentGrams}g</p>
-                        <p className="text-slate-500 text-[11px]">{(estFilamentGrams / 1000).toFixed(2)} kg</p>
-                      </div>
-                      <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                        <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Czas druku</p>
-                        <p className="text-white font-semibold text-sm">~{estPrintHours}h</p>
-                        <p className="text-slate-500 text-[11px]">{quantity} szt × ~2h</p>
-                      </div>
-                      <div className="rounded-lg p-3 col-span-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                        <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Szacowany koszt ({material})</p>
-                        <p className="text-white font-semibold text-sm">{estCostLow.toFixed(0)} – {estCostHigh.toFixed(0)} zł</p>
-                        <p className="text-slate-500 text-[11px]">Szacunkowe zużycie: ~{estFilamentGrams}g filamentu, ~{estPrintHours}h druku</p>
-                      </div>
+                    <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                      <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Czas druku (1 drukarka)</p>
+                      <p className="text-white font-semibold text-sm">~{estimation.timeHoursTotal.toFixed(1)}h</p>
+                      <p className="text-slate-500 text-[11px]">{quantity} szt x ~{estimation.timeHoursSingle.toFixed(1)}h/szt</p>
+                    </div>
+                    <div className="rounded-lg p-3 col-span-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                      <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Parametry kalkulacji</p>
+                      <p className="text-slate-500 text-[11px]">{material} ({MATERIAL_DENSITY[material]} g/cm3) | {quality} | Wypelnienie {infill}</p>
                     </div>
                   </div>
-                )
-              })()}
+                ) : (
+                  <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
+                    <p className="text-slate-400 text-sm">Dokladne oszacowanie po analizie pliku</p>
+                    <p className="text-slate-500 text-[11px]">Wymiary i czas druku dostepne dla plikow STL</p>
+                  </div>
+                )}
+              </div>
 
               {/* Submit */}
               <button
@@ -465,6 +489,10 @@ export default function UploadPage() {
                     params.set('maxX', maxDims.x.toFixed(1))
                     params.set('maxY', maxDims.y.toFixed(1))
                     params.set('maxZ', maxDims.z.toFixed(1))
+                  }
+                  if (estimation) {
+                    params.set('estGrams', estimation.filamentGrams.toFixed(1))
+                    params.set('estTimeSingle', estimation.timeHoursSingle.toFixed(2))
                   }
                   router.push(`/marketplace?${params.toString()}`)
                 }}

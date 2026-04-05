@@ -37,8 +37,8 @@ function getDiscount(qty: number): number {
   return 0
 }
 
-function calcPrintTimeHours(quantity: number, printers: number): number {
-  return Math.ceil(quantity / Math.max(printers, 1)) * 2
+function calcPrintTimeHours(quantity: number, printers: number, timeSingleH: number): number {
+  return Math.ceil(quantity / Math.max(printers, 1)) * timeSingleH
 }
 
 interface FarmFilament {
@@ -94,9 +94,13 @@ export default function MarketplacePage() {
   const urlMaxX = searchParams.get('maxX')
   const urlMaxY = searchParams.get('maxY')
   const urlMaxZ = searchParams.get('maxZ')
+  const urlEstGrams = searchParams.get('estGrams')
+  const urlEstTimeSingle = searchParams.get('estTimeSingle')
   const modelDims = urlMaxX && urlMaxY && urlMaxZ
     ? { x: parseFloat(urlMaxX), y: parseFloat(urlMaxY), z: parseFloat(urlMaxZ) }
     : null
+  const estTimeSingleH = urlEstTimeSingle ? parseFloat(urlEstTimeSingle) : 2
+  const estGrams = urlEstGrams ? parseFloat(urlEstGrams) : null
 
   const hasOrderParams = !!(urlMaterial && urlQuantity)
   const quantity = urlQuantity ? parseInt(urlQuantity, 10) : 1
@@ -164,7 +168,7 @@ export default function MarketplacePage() {
     const basePrice = urlMaterial ? (BASE_PRICES[urlMaterial] ?? 45) : 45
     const discount = getDiscount(quantity)
     const totalPrice = basePrice * quantity * (1 - discount)
-    const printTimeH = calcPrintTimeHours(quantity, farm.printerCount)
+    const printTimeH = calcPrintTimeHours(quantity, farm.printerCount, estTimeSingleH)
 
     const { data: userData } = await supabase.auth.getUser()
     const clientEmail = userData?.user?.email || 'anonim@printflow.pl'
@@ -283,7 +287,7 @@ export default function MarketplacePage() {
         {hasOrderParams ? (
           <div className="rounded-xl p-4 mb-8 flex flex-wrap items-center gap-3" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.2)' }}>
             <span className="text-sm font-medium" style={{ color: '#22C55E' }}>Znaleziono {filtered.length} farm dla:</span>
-            {[urlMaterial, urlColor, `${quantity} szt`, urlQuality, urlInfill ? `wypełnienie ${urlInfill}` : null, modelDims ? `📐 ${modelDims.x.toFixed(0)}×${modelDims.y.toFixed(0)}×${modelDims.z.toFixed(0)} mm` : null]
+            {[urlMaterial, urlColor, `${quantity} szt`, urlQuality, urlInfill ? `wypełnienie ${urlInfill}` : null, modelDims ? `${modelDims.x.toFixed(0)}x${modelDims.y.toFixed(0)}x${modelDims.z.toFixed(0)} mm` : null]
               .filter(Boolean)
               .map((tag, i) => (
                 <span key={i} className="text-xs font-medium px-2.5 py-1 rounded-full" style={{ background: 'rgba(139,92,246,0.15)', color: '#a78bfa', border: '1px solid rgba(139,92,246,0.25)' }}>
@@ -332,7 +336,8 @@ export default function MarketplacePage() {
             const discount = getDiscount(quantity)
             const totalPrice = basePrice * quantity * (1 - discount)
             const unitPrice = totalPrice / quantity
-            const printTimeH = calcPrintTimeHours(quantity, farm.printerCount)
+            const printTimeH = calcPrintTimeHours(quantity, farm.printerCount, estTimeSingleH)
+            const singlePrinterTimeH = estTimeSingleH * quantity
 
             const expressTime = Math.ceil(printTimeH * 0.6)
             const expressPrice = totalPrice * 1.3
@@ -461,20 +466,24 @@ export default function MarketplacePage() {
                 {/* Order-specific info */}
                 {hasOrderParams && (
                   <div className="mb-4 space-y-2">
-                    <div className="rounded-lg px-3 py-2 flex items-center gap-2 text-sm" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}>
-                      <span>🕐</span>
-                      <span style={{ color: 'rgba(255,255,255,0.7)' }}>
-                        Szacowany czas: <span className="font-semibold text-white">~{printTimeH}h</span>
-                        <span className="text-xs ml-1" style={{ color: 'rgba(255,255,255,0.4)' }}>({farm.printerCount} drukarek równolegle)</span>
-                      </span>
+                    {/* Time estimation box */}
+                    <div className="rounded-lg px-3 py-2.5" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.15)' }}>
+                      <div className="flex items-center gap-2 text-sm">
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                        <span style={{ color: 'rgba(255,255,255,0.7)' }}>
+                          1 drukarka: <span className="font-semibold text-white">~{singlePrinterTimeH.toFixed(1)}h</span>
+                          <span className="mx-1.5" style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+                          Cala farma ({farm.printerCount} drukarek): <span className="font-semibold text-white">~{printTimeH.toFixed(1)}h</span>
+                        </span>
+                      </div>
                     </div>
 
                     <div className="rounded-lg px-3 py-2 flex items-center justify-between text-sm" style={{ background: 'rgba(34,197,94,0.08)', border: '1px solid rgba(34,197,94,0.15)' }}>
                       <div className="flex items-center gap-2">
-                        <span>💰</span>
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
                         <span style={{ color: 'rgba(255,255,255,0.7)' }}>
-                          Wycena: <span className="font-bold" style={{ color: '#22C55E' }}>{totalPrice.toFixed(2)} zł</span>
-                          <span className="text-xs ml-1" style={{ color: 'rgba(255,255,255,0.4)' }}>({unitPrice.toFixed(2)} zł/szt)</span>
+                          Wycena: <span className="font-bold" style={{ color: '#22C55E' }}>{totalPrice.toFixed(2)} zl</span>
+                          <span className="text-xs ml-1" style={{ color: 'rgba(255,255,255,0.4)' }}>({unitPrice.toFixed(2)} zl/szt)</span>
                         </span>
                       </div>
                       {discount > 0 && (

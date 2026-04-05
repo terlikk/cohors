@@ -667,7 +667,7 @@ export default function DashboardPage() {
                   + Dodaj drukarkę
                 </button>
                 {!farmId && (
-                  <p className="text-red-400 text-xs mt-1">⚠️ farmId nie załadowane — drukarki nie będą dodawane</p>
+                  <p className="text-red-400 text-xs mt-1">farmId nie zaladowane -- drukarki nie beda dodawane</p>
                 )}
               </div>
 

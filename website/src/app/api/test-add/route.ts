@@ -49,7 +49,7 @@ export async function GET(req: NextRequest) {
   if (error) {
     return new NextResponse(
       `<html><body style="background:#0f172a;color:#ef4444;font-family:sans-serif;padding:40px">
-        <h2>❌ BŁĄD</h2><pre>${JSON.stringify(error, null, 2)}</pre>
+        <h2>BLAD</h2><pre>${JSON.stringify(error, null, 2)}</pre>
         <a href="/dashboard" style="color:#22c55e">← Dashboard</a>
       </body></html>`,
       { headers: { 'Content-Type': 'text/html' } }
@@ -58,7 +58,7 @@ export async function GET(req: NextRequest) {
 
   return new NextResponse(
     `<html><body style="background:#0f172a;color:#22c55e;font-family:sans-serif;padding:40px">
-      <h2>✅ DODANO DRUKARKĘ!</h2>
+      <h2>DODANO DRUKARKE!</h2>
       <pre style="color:white">${JSON.stringify(data, null, 2)}</pre>
       <br><a href="/dashboard" style="color:#22c55e;font-size:20px">← Wróć do Dashboard (odśwież stronę!)</a>
     </body></html>`,
