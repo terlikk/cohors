@@ -441,36 +441,31 @@ export default function UploadPage() {
                 </div>
               </div>
 
-              {/* Estimate card */}
-              <div className="mt-5 rounded-xl p-4" style={{ background: 'rgba(139,92,246,0.06)', border: '1px solid rgba(139,92,246,0.15)' }}>
-                <div className="flex items-center gap-2 mb-3">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#8B5CF6" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
-                  <span className="text-sm font-semibold" style={{ color: '#a78bfa' }}>Szacunkowe zuzycie</span>
-                </div>
-                {estimation ? (
+              {/* Real estimation from STL data only */}
+              {estimation && (
+                <div className="mt-5 rounded-xl p-4" style={{ background: 'rgba(34,197,94,0.06)', border: '1px solid rgba(34,197,94,0.15)' }}>
+                  <div className="flex items-center gap-2 mb-3">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#22C55E" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
+                    <span className="text-sm font-semibold" style={{ color: '#4ade80' }}>Obliczono z pliku STL</span>
+                  </div>
                   <div className="grid grid-cols-2 gap-3">
                     <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
                       <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Filament</p>
-                      <p className="text-white font-semibold text-sm">~{estimation.filamentGrams.toFixed(0)}g</p>
-                      <p className="text-slate-500 text-[11px]">~{estimation.filamentMeters.toFixed(1)} m ({(estimation.filamentGrams / 1000).toFixed(2)} kg)</p>
+                      <p className="text-white font-semibold text-sm">{estimation.filamentGrams.toFixed(0)}g</p>
+                      <p className="text-slate-500 text-[11px]">{estimation.filamentMeters.toFixed(1)} m ({(estimation.filamentGrams / 1000).toFixed(2)} kg)</p>
                     </div>
                     <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
                       <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Czas druku (1 drukarka)</p>
-                      <p className="text-white font-semibold text-sm">~{estimation.timeHoursTotal.toFixed(1)}h</p>
-                      <p className="text-slate-500 text-[11px]">{quantity} szt x ~{estimation.timeHoursSingle.toFixed(1)}h/szt</p>
+                      <p className="text-white font-semibold text-sm">{estimation.timeHoursTotal.toFixed(1)}h</p>
+                      <p className="text-slate-500 text-[11px]">{quantity} szt x {estimation.timeHoursSingle.toFixed(1)}h/szt</p>
                     </div>
                     <div className="rounded-lg p-3 col-span-2" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                      <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Parametry kalkulacji</p>
+                      <p className="text-[11px] uppercase tracking-wider mb-1" style={{ color: 'rgba(255,255,255,0.3)' }}>Parametry</p>
                       <p className="text-slate-500 text-[11px]">{material} ({MATERIAL_DENSITY[material]} g/cm3) | {quality} | Wypelnienie {infill}</p>
                     </div>
                   </div>
-                ) : (
-                  <div className="rounded-lg p-3" style={{ background: 'rgba(255,255,255,0.03)' }}>
-                    <p className="text-slate-400 text-sm">Dokladne oszacowanie po analizie pliku</p>
-                    <p className="text-slate-500 text-[11px]">Wymiary i czas druku dostepne dla plikow STL</p>
-                  </div>
-                )}
-              </div>
+                </div>
+              )}
 
               {/* Submit */}
               <button

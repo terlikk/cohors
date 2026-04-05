@@ -37,8 +37,9 @@ function getDiscount(qty: number): number {
   return 0
 }
 
-function calcPrintTimeHours(quantity: number, printers: number, timeSingleH: number): number {
-  return Math.ceil(quantity / Math.max(printers, 1)) * timeSingleH
+function calcPrintTimeHours(quantity: number, printers: number, timeSingleH: number): number | null {
+  if (printers <= 0) return null
+  return Math.ceil(quantity / printers) * timeSingleH
 }
 
 interface FarmFilament {
@@ -184,7 +185,7 @@ export default function MarketplacePage() {
       quality: urlQuality || 'Standard (0.2mm)',
       quantity,
       price_total: totalPrice,
-      estimated_hours: printTimeH,
+      estimated_hours: printTimeH || estTimeSingleH * quantity,
       notes: urlInfill ? `Wypełnienie: ${urlInfill}` : null,
     })
 
@@ -338,10 +339,11 @@ export default function MarketplacePage() {
             const unitPrice = totalPrice / quantity
             const printTimeH = calcPrintTimeHours(quantity, farm.printerCount, estTimeSingleH)
             const singlePrinterTimeH = estTimeSingleH * quantity
+            const farmTimeH = printTimeH ?? singlePrinterTimeH // fallback if 0 printers
 
-            const expressTime = Math.ceil(printTimeH * 0.6)
+            const expressTime = printTimeH ? Math.ceil(printTimeH * 0.6) : null
             const expressPrice = totalPrice * 1.3
-            const rushTime = Math.ceil(printTimeH * 0.4)
+            const rushTime = printTimeH ? Math.ceil(printTimeH * 0.4) : null
             const rushPrice = totalPrice * 1.5
 
             const rating = farm.rating_avg || 0
@@ -472,8 +474,13 @@ export default function MarketplacePage() {
                         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#a78bfa" strokeWidth="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
                         <span style={{ color: 'rgba(255,255,255,0.7)' }}>
                           1 drukarka: <span className="font-semibold text-white">~{singlePrinterTimeH.toFixed(1)}h</span>
-                          <span className="mx-1.5" style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
-                          Cala farma ({farm.printerCount} drukarek): <span className="font-semibold text-white">~{printTimeH.toFixed(1)}h</span>
+                          {farm.printerCount > 0 && (<>
+                            <span className="mx-1.5" style={{ color: 'rgba(255,255,255,0.2)' }}>|</span>
+                            Cala farma ({farm.printerCount} drukarek): <span className="font-semibold text-white">~{farmTimeH.toFixed(1)}h</span>
+                          </>)}
+                          {farm.printerCount === 0 && (
+                            <span className="ml-2 text-xs" style={{ color: '#f97316' }}>Brak drukarek w farmie</span>
+                          )}
                         </span>
                       </div>
                     </div>
@@ -495,17 +502,17 @@ export default function MarketplacePage() {
                       <div className="flex-1 rounded-lg px-2 py-1.5 text-center text-xs" style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.08)' }}>
                         <div className="font-medium" style={{ color: 'rgba(255,255,255,0.5)' }}>Standard</div>
                         <div className="font-bold text-white">{totalPrice.toFixed(0)} zł</div>
-                        <div style={{ color: 'rgba(255,255,255,0.3)' }}>~{printTimeH}h</div>
+                        <div style={{ color: 'rgba(255,255,255,0.3)' }}>~{farmTimeH.toFixed(1)}h</div>
                       </div>
                       <div className="flex-1 rounded-lg px-2 py-1.5 text-center text-xs" style={{ background: 'rgba(139,92,246,0.08)', border: '1px solid rgba(139,92,246,0.2)' }}>
                         <div className="font-medium" style={{ color: '#a78bfa' }}>Express</div>
                         <div className="font-bold text-white">{expressPrice.toFixed(0)} zł</div>
-                        <div style={{ color: 'rgba(255,255,255,0.3)' }}>~{expressTime}h</div>
+                        <div style={{ color: 'rgba(255,255,255,0.3)' }}>~{expressTime ? expressTime + 'h' : '?'}</div>
                       </div>
                       <div className="flex-1 rounded-lg px-2 py-1.5 text-center text-xs" style={{ background: 'rgba(251,146,60,0.08)', border: '1px solid rgba(251,146,60,0.2)' }}>
                         <div className="font-medium" style={{ color: '#fb923c' }}>Rush</div>
                         <div className="font-bold text-white">{rushPrice.toFixed(0)} zł</div>
-                        <div style={{ color: 'rgba(255,255,255,0.3)' }}>~{rushTime}h</div>
+                        <div style={{ color: 'rgba(255,255,255,0.3)' }}>~{rushTime ? rushTime + 'h' : '?'}</div>
                       </div>
                     </div>
                   </div>
