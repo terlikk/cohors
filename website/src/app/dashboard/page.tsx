@@ -231,7 +231,7 @@ export default function DashboardPage() {
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<Tab>('drukarki')
   const router = useRouter()
-  const supabase = createClient()
+  const [supabase] = useState(() => createClient())
 
   // Printer state
   const [printers, setPrinters] = useState<Printer[]>([])
@@ -368,7 +368,8 @@ export default function DashboardPage() {
       setLoading(false)
     }
     init()
-  }, [router, supabase])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   async function handleLogout() {
     await supabase.auth.signOut()
@@ -650,6 +651,9 @@ export default function DashboardPage() {
                 >
                   + Dodaj drukarkę
                 </button>
+                {!farmId && (
+                  <p className="text-red-400 text-xs mt-1">⚠️ farmId nie załadowane — drukarki nie będą dodawane</p>
+                )}
               </div>
 
               {printers.length === 0 ? (
