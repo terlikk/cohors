@@ -163,40 +163,41 @@ export default function MarketplacePage() {
 
   async function handleOrder(farm: Farm) {
     setOrderingFarmId(farm.id)
-    const supabase = createClient()
 
-    const orderNumber = `PF-2026-${String(Math.floor(Math.random() * 100000)).padStart(5, '0')}`
     const basePrice = urlMaterial ? (BASE_PRICES[urlMaterial] ?? 45) : 45
     const discount = getDiscount(quantity)
     const totalPrice = basePrice * quantity * (1 - discount)
     const printTimeH = calcPrintTimeHours(quantity, farm.printerCount, estTimeSingleH)
 
+    const supabase = createClient()
     const { data: userData } = await supabase.auth.getUser()
     const clientEmail = userData?.user?.email || 'anonim@printflow.pl'
 
-    const { error } = await supabase.from('orders').insert({
-      order_number: orderNumber,
-      client_email: clientEmail,
-      farm_id: farm.id,
-      status: 'nowe',
-      file_names: urlFiles ? urlFiles.split(',') : [],
-      material: urlMaterial || 'PLA',
-      color: urlColor || 'Czarny',
-      quality: urlQuality || 'Standard (0.2mm)',
-      quantity,
-      price_total: totalPrice,
-      estimated_hours: printTimeH || estTimeSingleH * quantity,
-      notes: urlInfill ? `Wypełnienie: ${urlInfill}` : null,
-    })
-
-    setOrderingFarmId(null)
-
-    if (error) {
-      alert('Błąd składania zamówienia: ' + error.message)
-      return
+    try {
+      const res = await fetch('/api/create-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          farm_id: farm.id,
+          client_email: clientEmail,
+          file_names: urlFiles ? urlFiles.split(',') : [],
+          material: urlMaterial || 'PLA',
+          color: urlColor || 'Czarny',
+          quality: urlQuality || 'Standard (0.2mm)',
+          quantity,
+          price_total: totalPrice,
+          estimated_hours: printTimeH || estTimeSingleH * quantity,
+          notes: urlInfill ? `Wypelnienie: ${urlInfill}` : null,
+        }),
+      })
+      const data = await res.json()
+      setOrderingFarmId(null)
+      if (!res.ok) { alert('Blad skladania zamowienia: ' + (data.error || 'Unknown')); return }
+      setOrderConfirmation(data.order_number)
+    } catch (e) {
+      setOrderingFarmId(null)
+      alert('Blad sieci: ' + String(e))
     }
-
-    setOrderConfirmation(orderNumber)
   }
 
   const inputStyle: React.CSSProperties = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }

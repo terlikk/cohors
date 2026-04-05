@@ -8,7 +8,7 @@ import { createClient } from '@/lib/supabase'
 import type { User } from '@supabase/supabase-js'
 
 type Tab = 'drukarki' | 'zamowienia' | 'filamenty' | 'automatyzacja' | 'profil'
-type OrderStatus = 'nowe' | 'drukuje' | 'gotowe' | 'wysłane'
+type OrderStatus = 'nowe' | 'drukuje' | 'gotowe' | 'wysłane' | 'anulowane'
 type OrderFilter = 'all' | OrderStatus
 
 interface Printer {
@@ -186,6 +186,7 @@ const ORDER_STATUS_STYLES: Record<OrderStatus, { bg: string; border: string; col
   drukuje: { bg: 'rgba(59,130,246,0.1)', border: 'rgba(59,130,246,0.3)', color: '#3b82f6', label: 'DRUKUJE' },
   gotowe: { bg: 'rgba(34,197,94,0.1)', border: 'rgba(34,197,94,0.3)', color: '#22c55e', label: 'GOTOWE' },
   wysłane: { bg: 'rgba(168,85,247,0.1)', border: 'rgba(168,85,247,0.3)', color: '#a855f7', label: 'WYSŁANE' },
+  anulowane: { bg: 'rgba(239,68,68,0.1)', border: 'rgba(239,68,68,0.3)', color: '#f87171', label: 'ANULOWANE' },
 }
 
 const FREE_FEATURES = [
@@ -534,6 +535,21 @@ export default function DashboardPage() {
     setFilaments(prev => prev.filter(f => f.id !== id))
   }
 
+  async function updateOrderStatus(orderId: string, newStatus: string) {
+    try {
+      const res = await fetch('/api/update-order', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ id: orderId, status: newStatus }),
+      })
+      const data = await res.json()
+      if (!res.ok) { alert('Blad: ' + (data.error || 'Unknown')); return }
+      setOrders(prev => prev.map(o => o.id === orderId ? { ...o, status: newStatus as OrderStatus, updated_at: new Date().toISOString() } : o))
+    } catch (e) {
+      alert('Blad sieci: ' + String(e))
+    }
+  }
+
   function startEditFilament(f: Filament) {
     setEditingFilament(f)
     setNewFilament({
@@ -583,7 +599,7 @@ export default function DashboardPage() {
   const inputStyle = { background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }
 
   // Order counts for filters
-  const orderCounts: Record<OrderStatus, number> = { nowe: 0, drukuje: 0, gotowe: 0, wysłane: 0 }
+  const orderCounts: Record<OrderStatus, number> = { nowe: 0, drukuje: 0, gotowe: 0, wysłane: 0, anulowane: 0 }
   orders.forEach(o => {
     if (orderCounts[o.status] !== undefined) orderCounts[o.status]++
   })
@@ -795,8 +811,42 @@ export default function DashboardPage() {
                               <span className="text-white font-semibold">{order.price_total.toFixed(2)} zł</span>
                             </div>
                             {order.notes && (
-                              <p className="text-slate-500 text-[12px] mb-2">Notatki: {order.notes}</p>
+                              <p className="text-slate-500 text-[12px] mb-3">Notatki: {order.notes}</p>
                             )}
+                            {/* Order actions */}
+                            <div className="flex gap-2 flex-wrap">
+                              {order.status === 'nowe' && (
+                                <>
+                                  <button onClick={() => updateOrderStatus(order.id, 'drukuje')}
+                                    className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition-all border-none"
+                                    style={{ background: 'rgba(34,197,94,0.15)', color: '#22C55E' }}>
+                                    Akceptuj i drukuj
+                                  </button>
+                                  <button onClick={() => updateOrderStatus(order.id, 'anulowane')}
+                                    className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition-all border-none"
+                                    style={{ background: 'rgba(239,68,68,0.1)', color: '#f87171' }}>
+                                    Odrzuc
+                                  </button>
+                                </>
+                              )}
+                              {order.status === 'drukuje' && (
+                                <button onClick={() => updateOrderStatus(order.id, 'gotowe')}
+                                  className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition-all border-none"
+                                  style={{ background: 'rgba(34,197,94,0.15)', color: '#22C55E' }}>
+                                  Oznacz jako gotowe
+                                </button>
+                              )}
+                              {order.status === 'gotowe' && (
+                                <button onClick={() => updateOrderStatus(order.id, 'wysłane')}
+                                  className="px-3 py-1.5 rounded-lg text-[12px] font-medium cursor-pointer transition-all border-none"
+                                  style={{ background: 'rgba(168,85,247,0.15)', color: '#a855f7' }}>
+                                  Oznacz jako wyslane
+                                </button>
+                              )}
+                              {(order.status === 'wysłane' || order.status === 'anulowane') && (
+                                <span className="text-slate-600 text-[12px]">Zamowienie zakonczone</span>
+                              )}
+                            </div>
                           </div>
                         )
                       })}
