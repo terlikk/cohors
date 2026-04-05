@@ -311,13 +311,28 @@ export default function DashboardPage() {
       setUser(user)
 
       // Fetch user's farm
-      const { data: farm, error: farmError } = await supabase
+      let { data: farm, error: farmError } = await supabase
         .from('farms')
         .select('id, slug')
         .eq('user_id', user.id)
         .single()
 
-      console.log('[PrintFlow] Farm query:', farm, 'Error:', farmError)
+      // If no farm found, auto-create one
+      if (!farm && user) {
+        const farmName = user.user_metadata?.farm_name || user.email?.split('@')[0] || 'Moja farma'
+        const city = user.user_metadata?.city || ''
+        const slug = farmName.toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '')
+        
+        const res = await fetch('/api/create-farm', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: user.id, name: farmName, slug, city }),
+        })
+        if (res.ok) {
+          const newFarm = await res.json()
+          farm = newFarm
+        }
+      }
 
       if (farm) {
         setFarmId(farm.id)

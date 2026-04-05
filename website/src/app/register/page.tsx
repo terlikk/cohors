@@ -106,34 +106,33 @@ export default function RegisterPage() {
       .replace(/[^a-z0-9]+/g, '-')
       .replace(/^-|-$/g, '')
 
-    const { data: farmData, error: farmError } = await supabase.from('farms').insert({
-      user_id: signInData.user.id,
-      name: farmName,
-      slug,
-      city,
-      is_active: true,
-    }).select().single()
+    // Create farm via API route (bypasses RLS)
+    const filamentRows = selectedFilaments.flatMap(f =>
+      (f.colors.length > 0 ? f.colors : ['Czarny']).map(color => ({
+        type: f.type,
+        color,
+      }))
+    )
 
-    if (farmError) {
-      setError('Konto utworzone, ale nie udało się utworzyć farmy: ' + farmError.message)
-      setLoading(false)
-      return
-    }
+    const farmRes = await fetch('/api/create-farm', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        user_id: signInData.user.id,
+        name: farmName,
+        slug,
+        city,
+        filaments: filamentRows,
+      }),
+    })
 
-    // Insert filaments
-    if (farmData && selectedFilaments.length > 0) {
-      const filamentRows = selectedFilaments.flatMap(f =>
-        (f.colors.length > 0 ? f.colors : ['Czarny']).map(color => ({
-          farm_id: farmData.id,
-          type: f.type,
-          color,
-          brand: '',
-          price_per_kg: 0,
-          stock_grams: 1000,
-          low_stock_alert: 500,
-        }))
-      )
-      await supabase.from('filaments').insert(filamentRows)
+    if (!farmRes.ok) {
+      const farmErr = await farmRes.json()
+      if (farmRes.status !== 409) { // 409 = farm already exists, that's ok
+        setError('Konto utworzone, ale nie udało się utworzyć farmy: ' + (farmErr.error || 'Unknown'))
+        setLoading(false)
+        return
+      }
     }
 
     try {
