@@ -21,9 +21,16 @@ const ENGINE_OPTIONS: EngineKey[] = [
   "http",
 ];
 
-export function HireForm() {
+export function HireForm({
+  engineAvailability,
+}: {
+  engineAvailability: Record<EngineKey, boolean>;
+}) {
   const [role, setRole] = useState<RoleKey>("marketing");
   const [name, setName] = useState("");
+  const [engine, setEngine] = useState<EngineKey>(
+    engineAvailability.claude_code ? "claude_code" : "anthropic_api",
+  );
   const [state, formAction, pending] = useActionState<HireFormState, FormData>(
     hireAgent,
     {},
@@ -118,7 +125,7 @@ export function HireForm() {
           <div>
             <span className="text-xs text-ink-muted">{t.hire.engineLabel}</span>
             <div className="mt-1 grid gap-2 sm:grid-cols-2">
-              {ENGINE_OPTIONS.map((e, i) => (
+              {ENGINE_OPTIONS.map((e) => (
                 <label
                   key={e}
                   className="flex cursor-pointer items-start gap-3 rounded-xl border border-line bg-panel-2/50 p-3 transition hover:border-accent/40 has-[:checked]:border-accent has-[:checked]:bg-panel-2"
@@ -127,12 +134,26 @@ export function HireForm() {
                     type="radio"
                     name="engine"
                     value={e}
-                    defaultChecked={i === 0}
+                    checked={engine === e}
+                    onChange={() => setEngine(e)}
                     className="mt-1 accent-[#f0a818]"
                   />
                   <span>
-                    <span className="block text-sm font-semibold text-ink">
+                    <span className="flex items-center gap-2 text-sm font-semibold text-ink">
                       {t.engines[e]}
+                      {e !== "http" && (
+                        <span
+                          className={`rounded-full px-1.5 py-0.5 font-mono text-[10px] ${
+                            engineAvailability[e]
+                              ? "bg-role-support/15 text-role-support"
+                              : "bg-panel text-ink-muted"
+                          }`}
+                        >
+                          {engineAvailability[e]
+                            ? t.engineDetected
+                            : t.engineNotDetected}
+                        </span>
+                      )}
                     </span>
                     <span className="mt-0.5 block text-xs leading-snug text-ink-muted">
                       {t.engineDescriptions[e]}
@@ -141,9 +162,20 @@ export function HireForm() {
                 </label>
               ))}
             </div>
-            <p className="mt-1.5 text-xs text-ink-muted/80">
-              {t.hire.engineHint}
-            </p>
+            {engine === "http" && (
+              <div className="mt-2">
+                <label className="text-xs text-ink-muted" htmlFor="engineUrl">
+                  {t.engineHttpUrlLabel}
+                </label>
+                <input
+                  id="engineUrl"
+                  name="engineUrl"
+                  type="url"
+                  placeholder={t.engineHttpUrlPlaceholder}
+                  className="mt-1 w-full rounded-xl border border-line bg-panel-2 px-4 py-2.5 font-mono text-sm text-ink placeholder:text-ink-muted/60 focus:border-accent focus:outline-none"
+                />
+              </div>
+            )}
           </div>
           <div className="max-w-xs">
             <label className="text-xs text-ink-muted" htmlFor="budget">

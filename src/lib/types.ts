@@ -20,6 +20,8 @@ export interface Agent {
   /** Plain-language job description written by the boss when hiring. */
   jobDescription: string;
   engine: EngineKey;
+  /** Engine-specific settings, e.g. { url } for the HTTP engine. */
+  engineConfig?: { url?: string };
   status: AgentStatus;
   /** What the agent is doing right now, in the UI language. */
   currentTask?: string;
@@ -69,6 +71,10 @@ export interface Task {
   status: TaskStatus;
   sort: number;
   costUsd?: number;
+  /** Deliverable produced by the agent, awaiting or after boss review. */
+  result?: string;
+  /** Boss comments from rejected reviews, oldest first. */
+  feedback: string[];
   createdAt: string;
 }
 
@@ -79,6 +85,8 @@ export type JournalKind =
   | "plan_changes"
   | "task_started"
   | "task_finished"
+  | "task_failed"
+  | "budget_stopped"
   | "waiting_approval"
   | "approved"
   | "changes_requested"

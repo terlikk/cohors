@@ -7,12 +7,16 @@ import { planOrder } from "@/lib/planner";
 import {
   addJournalEvent,
   approveOrder,
+  approveTask,
   createAgent,
   createOrderWithPlan,
+  getAgent,
   getOrder,
+  getTask,
   listAgents,
   listOrderTasks,
   replaceOrderPlan,
+  requestTaskChanges,
 } from "@/lib/repo";
 import type { EngineKey, RoleKey } from "@/lib/types";
 
@@ -55,12 +59,14 @@ export async function hireAgent(
 
   const roleLabel = role === "custom" ? customRoleLabel : t.roles[role];
 
+  const engineUrl = String(formData.get("engineUrl") ?? "").trim();
   createAgent({
     name,
     role,
     customRoleLabel: role === "custom" ? customRoleLabel : undefined,
     jobDescription,
     engine: ENGINES.includes(engine) ? engine : "claude_code",
+    engineConfig: engine === "http" && engineUrl ? { url: engineUrl } : undefined,
     monthBudgetUsd: Number.isFinite(budget) && budget > 0 ? budget : 10,
     onboarding,
   });
@@ -158,5 +164,46 @@ export async function requestPlanChanges(
 
   revalidatePath("/");
   revalidatePath(`/orders/${orderId}`);
+  return {};
+}
+
+export async function approveTaskAction(formData: FormData): Promise<void> {
+  const taskId = String(formData.get("taskId") ?? "");
+  const task = getTask(taskId);
+  if (!task || task.status !== "awaiting_approval") return;
+
+  const agent = getAgent(task.agentId);
+  approveTask(taskId);
+  addJournalEvent({
+    agentId: task.agentId,
+    kind: "approved",
+    text: t.journalTexts.taskApproved(agent?.name ?? "?", task.title),
+  });
+  revalidatePath("/");
+}
+
+export interface TaskChangesFormState {
+  error?: string;
+}
+
+export async function requestTaskChangesAction(
+  _prev: TaskChangesFormState,
+  formData: FormData,
+): Promise<TaskChangesFormState> {
+  const taskId = String(formData.get("taskId") ?? "");
+  const comment = String(formData.get("comment") ?? "").trim();
+  if (!comment) return { error: t.approvals.feedbackPlaceholder };
+
+  const task = getTask(taskId);
+  if (!task || task.status !== "awaiting_approval") return {};
+
+  const agent = getAgent(task.agentId);
+  requestTaskChanges(taskId, comment);
+  addJournalEvent({
+    agentId: task.agentId,
+    kind: "changes_requested",
+    text: t.journalTexts.taskChanges(agent?.name ?? "?", task.title, comment),
+  });
+  revalidatePath("/");
   return {};
 }

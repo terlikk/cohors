@@ -29,6 +29,7 @@ function open(): Database.Database {
       custom_role_label TEXT,
       job_description TEXT NOT NULL,
       engine TEXT NOT NULL DEFAULT 'claude_code',
+      engine_config TEXT,
       status TEXT NOT NULL DEFAULT 'idle',
       current_task TEXT,
       month_budget_usd REAL NOT NULL DEFAULT 10,
@@ -61,6 +62,8 @@ function open(): Database.Database {
       status TEXT NOT NULL DEFAULT 'proposed',
       sort INTEGER NOT NULL DEFAULT 0,
       cost_usd REAL,
+      result TEXT,
+      feedback TEXT NOT NULL DEFAULT '[]',
       created_at TEXT NOT NULL
     );
 

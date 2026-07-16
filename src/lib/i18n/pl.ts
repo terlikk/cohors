@@ -76,6 +76,12 @@ export const pl = {
     approve: "Zatwierdź",
     requestChanges: "Uwagi",
     from: "od",
+    showMore: "Pokaż całość",
+    showLess: "Zwiń",
+    feedbackPlaceholder:
+      "Napisz, co poprawić — wynik wróci do agenta i dostaniesz nową wersję.",
+    feedbackSubmit: "Odeślij do poprawki",
+    revisionBadge: (n: number) => `poprawka #${n}`,
   },
   team: {
     heading: "Zespół",
@@ -135,6 +141,10 @@ export const pl = {
     codex: "Masz Codex z kontem ChatGPT? Podepniemy go jak Claude Code.",
     http: "Dowolny własny agent podpięty przez HTTP.",
   } satisfies Record<EngineKey, string>,
+  engineDetected: "wykryty ✓",
+  engineNotDetected: "niewykryty",
+  engineHttpUrlLabel: "Adres URL Twojego agenta",
+  engineHttpUrlPlaceholder: "https://twoj-agent.example.com/run",
   roles: {
     marketing: "Marketing",
     developer: "Programista",
@@ -196,6 +206,8 @@ export const pl = {
     plan_changes: "uwagi do planu",
     task_started: "start zadania",
     task_finished: "koniec zadania",
+    task_failed: "błąd zadania",
+    budget_stopped: "stop budżetowy",
     waiting_approval: "do odbioru",
     approved: "zatwierdzone",
     changes_requested: "uwagi szefa",
@@ -210,11 +222,23 @@ export const pl = {
     planApproved: "Szef zatwierdził plan — zadania trafiły do kolejek",
     planChanges: (comment: string) =>
       `Szef odesłał plan z uwagami: „${comment.length > 60 ? `${comment.slice(0, 57)}…` : comment}”`,
+    taskStarted: (agent: string, title: string) =>
+      `${agent} zaczyna: „${title}”`,
+    taskDelivered: (agent: string, title: string) =>
+      `${agent} oddaje do odbioru: „${title}”`,
+    taskFailed: (agent: string, title: string, reason: string) =>
+      `${agent} — zadanie „${title}” nie powiodło się (${reason})`,
+    taskApproved: (agent: string, title: string) =>
+      `Szef zatwierdził: „${title}” (${agent})`,
+    taskChanges: (agent: string, title: string, comment: string) =>
+      `Szef odesłał „${title}” do ${agent} z uwagami: „${comment.length > 50 ? `${comment.slice(0, 47)}…` : comment}”`,
+    budgetStopped: (agent: string, budget: number) =>
+      `${agent} zatrzymana — wyczerpany miesięczny budżet $${budget.toFixed(0)}`,
   },
   demoBanner:
     "Wersja demo na przykładowych danych — zmiany nie zapisują się na stałe.",
   stageBanner:
-    "Etap 2 — zatrudnianie działa naprawdę (lokalna baza). Rozkazy i wykonanie zadań w kolejnych etapach.",
+    "Etap 4 — pełna pętla działa: rozkaz → plan → wykonanie → odbiór. Nazwa i szlif wizualny przed nami.",
 };
 
 export type Dictionary = typeof pl;

@@ -20,6 +20,7 @@ interface AgentRow {
   custom_role_label: string | null;
   job_description: string;
   engine: string;
+  engine_config: string | null;
   status: string;
   current_task: string | null;
   month_budget_usd: number;
@@ -36,6 +37,22 @@ interface JournalRow {
 }
 
 function toAgent(r: AgentRow): Agent {
+  // Status is derived from the agent's live tasks rather than stored.
+  const live = db
+    .prepare(
+      `SELECT title, status FROM tasks
+       WHERE agent_id = ? AND status IN ('running', 'awaiting_approval')
+       ORDER BY CASE status WHEN 'running' THEN 0 ELSE 1 END LIMIT 1`,
+    )
+    .get(r.id) as { title: string; status: string } | undefined;
+
+  const status: AgentStatus =
+    live?.status === "running"
+      ? "working"
+      : live?.status === "awaiting_approval"
+        ? "waiting_for_boss"
+        : "idle";
+
   return {
     id: r.id,
     name: r.name,
@@ -43,8 +60,11 @@ function toAgent(r: AgentRow): Agent {
     customRoleLabel: r.custom_role_label ?? undefined,
     jobDescription: r.job_description,
     engine: r.engine as EngineKey,
-    status: r.status as AgentStatus,
-    currentTask: r.current_task ?? undefined,
+    engineConfig: r.engine_config
+      ? (JSON.parse(r.engine_config) as Agent["engineConfig"])
+      : undefined,
+    status,
+    currentTask: live?.title,
     monthCostUsd: monthCost(r.id),
     monthBudgetUsd: r.month_budget_usd,
   };
@@ -109,6 +129,7 @@ export function createAgent(input: {
   customRoleLabel?: string;
   jobDescription: string;
   engine: EngineKey;
+  engineConfig?: Agent["engineConfig"];
   monthBudgetUsd: number;
   onboarding: Array<{ question: string; answer: string }>;
 }): string {
@@ -117,8 +138,8 @@ export function createAgent(input: {
 
   const insert = db.transaction(() => {
     db.prepare(
-      `INSERT INTO agents (id, name, role, custom_role_label, job_description, engine, status, month_budget_usd, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, 'idle', ?, ?)`,
+      `INSERT INTO agents (id, name, role, custom_role_label, job_description, engine, engine_config, status, month_budget_usd, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'idle', ?, ?)`,
     ).run(
       id,
       input.name,
@@ -126,6 +147,7 @@ export function createAgent(input: {
       input.customRoleLabel ?? null,
       input.jobDescription,
       input.engine,
+      input.engineConfig ? JSON.stringify(input.engineConfig) : null,
       input.monthBudgetUsd,
       now,
     );
@@ -162,6 +184,8 @@ interface TaskRow {
   status: string;
   sort: number;
   cost_usd: number | null;
+  result: string | null;
+  feedback: string;
   created_at: string;
 }
 
@@ -186,6 +210,8 @@ function toTask(r: TaskRow): Task {
     status: r.status as TaskStatus,
     sort: r.sort,
     costUsd: r.cost_usd ?? undefined,
+    result: r.result ?? undefined,
+    feedback: JSON.parse(r.feedback) as string[],
     createdAt: r.created_at,
   };
 }
@@ -288,4 +314,124 @@ export function approveOrder(orderId: string): void {
     ).run(orderId);
   });
   approve();
+}
+
+export function getAgent(id: string): Agent | undefined {
+  const row = db.prepare(`SELECT * FROM agents WHERE id = ?`).get(id) as
+    | AgentRow
+    | undefined;
+  return row ? toAgent(row) : undefined;
+}
+
+export function getAgentOnboarding(
+  agentId: string,
+): Array<{ question: string; answer: string }> {
+  return db
+    .prepare(
+      `SELECT question, answer FROM agent_answers WHERE agent_id = ? ORDER BY created_at ASC`,
+    )
+    .all(agentId) as Array<{ question: string; answer: string }>;
+}
+
+export function getTask(id: string): Task | undefined {
+  const row = db.prepare(`SELECT * FROM tasks WHERE id = ?`).get(id) as
+    | TaskRow
+    | undefined;
+  return row ? toTask(row) : undefined;
+}
+
+/**
+ * Queued tasks that can start now: their order is approved, every
+ * dependency is done, and their agent isn't already running something.
+ */
+export function listEligibleTasks(): Task[] {
+  const rows = db
+    .prepare(
+      `SELECT t.* FROM tasks t
+       JOIN orders o ON o.id = t.order_id
+       WHERE t.status = 'queued' AND o.status = 'approved'
+         AND t.agent_id NOT IN (SELECT agent_id FROM tasks WHERE status = 'running')
+       ORDER BY t.created_at ASC, t.sort ASC`,
+    )
+    .all() as TaskRow[];
+
+  const done = new Set(
+    (
+      db.prepare(`SELECT id FROM tasks WHERE status = 'done'`).all() as Array<{
+        id: string;
+      }>
+    ).map((r) => r.id),
+  );
+
+  const seenAgents = new Set<string>();
+  const eligible: Task[] = [];
+  for (const row of rows) {
+    const task = toTask(row);
+    if (seenAgents.has(task.agentId)) continue;
+    if (!task.dependsOn.every((d) => done.has(d))) continue;
+    seenAgents.add(task.agentId);
+    eligible.push(task);
+  }
+  return eligible;
+}
+
+export function setTaskStatus(id: string, status: TaskStatus): void {
+  db.prepare(`UPDATE tasks SET status = ? WHERE id = ?`).run(status, id);
+}
+
+export function saveTaskResult(
+  id: string,
+  result: string,
+  costUsd: number,
+): void {
+  db.prepare(
+    `UPDATE tasks SET status = 'awaiting_approval', result = ?, cost_usd = COALESCE(cost_usd, 0) + ? WHERE id = ?`,
+  ).run(result, costUsd, id);
+}
+
+/** Tasks whose results wait for the boss's decision. */
+export function listAwaitingTasks(): Task[] {
+  const rows = db
+    .prepare(
+      `SELECT * FROM tasks WHERE status = 'awaiting_approval' ORDER BY created_at ASC`,
+    )
+    .all() as TaskRow[];
+  return rows.map(toTask);
+}
+
+export function approveTask(id: string): void {
+  db.prepare(`UPDATE tasks SET status = 'done' WHERE id = ?`).run(id);
+}
+
+/** Boss comments send the task back to the agent's queue for another pass. */
+export function requestTaskChanges(id: string, comment: string): void {
+  const task = getTask(id);
+  if (!task) return;
+  db.prepare(
+    `UPDATE tasks SET status = 'queued', feedback = ? WHERE id = ?`,
+  ).run(JSON.stringify([...task.feedback, comment]), id);
+}
+
+/** Approved results of the tasks a given task depends on. */
+export function getDependencyResults(
+  task: Task,
+): Array<{ title: string; result: string }> {
+  if (task.dependsOn.length === 0) return [];
+  const placeholders = task.dependsOn.map(() => "?").join(",");
+  const rows = db
+    .prepare(
+      `SELECT title, result FROM tasks WHERE id IN (${placeholders}) AND result IS NOT NULL`,
+    )
+    .all(...task.dependsOn) as Array<{ title: string; result: string }>;
+  return rows;
+}
+
+/** True if the newest journal event for this agent is a budget stop. */
+export function lastEventIsBudgetStop(agentId: string): boolean {
+  const row = db
+    .prepare(
+      `SELECT kind FROM journal WHERE agent_id = ? ORDER BY at DESC, rowid DESC LIMIT 1`,
+    )
+    .get(agentId) as { kind: string } | undefined;
+  return row?.kind === "budget_stopped";
 }
