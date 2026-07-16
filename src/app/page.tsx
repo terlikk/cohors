@@ -2,9 +2,16 @@ import { Approvals } from "@/components/Approvals";
 import { Journal } from "@/components/Journal";
 import { OrderBox } from "@/components/OrderBox";
 import { Team } from "@/components/Team";
+import { isDemo } from "@/lib/db";
 import { t } from "@/lib/i18n";
+import { listAgents, listJournal } from "@/lib/repo";
 
-export default function Dashboard() {
+export const dynamic = "force-dynamic";
+
+export default async function Dashboard() {
+  const agents = listAgents();
+  const journal = listJournal();
+
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <header className="flex items-center gap-3">
@@ -20,13 +27,13 @@ export default function Dashboard() {
       </header>
 
       <p className="rounded-xl border border-line bg-panel-2 px-4 py-2.5 text-xs text-ink-muted">
-        {t.demoBanner}
+        {isDemo ? t.demoBanner : t.stageBanner}
       </p>
 
       <OrderBox />
-      <Approvals />
-      <Team />
-      <Journal />
+      <Approvals approvals={[]} agents={agents} />
+      <Team agents={agents} />
+      <Journal events={journal} agents={agents} />
 
       <footer className="mt-auto pt-4 text-center font-mono text-[11px] text-ink-muted/70">
         open source · MIT
