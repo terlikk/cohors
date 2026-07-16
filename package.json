@@ -4,15 +4,20 @@
   "private": true,
   "description": "Open-source system for running a team of AI agents like a small company (working title)",
   "license": "MIT",
+  "bin": {
+    "agent-hq": "./bin/cli.mjs"
+  },
   "scripts": {
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "app": "next build && next start"
+    "app": "node bin/cli.mjs"
   },
   "dependencies": {
     "@anthropic-ai/sdk": "^0.111.0",
     "better-sqlite3": "^12.11.1",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.24.0",
     "next": "^15.3.4",
     "react": "^19.1.0",
     "react-dom": "^19.1.0"
