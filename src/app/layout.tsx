@@ -32,7 +32,7 @@ export default async function RootLayout({
     <html lang="pl">
       <body className="antialiased">
         <AutoRefresh />
-        <div className="flex min-h-dvh flex-col md:flex-row">
+        <div className="flex min-h-dvh flex-col md:h-dvh md:flex-row md:overflow-hidden">
           <Sidebar
             agents={agents.map((a) => ({
               id: a.id,
@@ -43,8 +43,8 @@ export default async function RootLayout({
             awaitingCount={awaitingCount}
             monthSpend={monthSpend}
           />
-          <main className="min-w-0 flex-1 px-4 py-6 sm:px-8 sm:py-8">
-            <div className="mx-auto flex w-full max-w-[860px] flex-col gap-5">
+          <main className="min-w-0 flex-1 md:h-dvh md:min-h-0">
+            <div className="mx-auto flex w-full max-w-[1080px] flex-col gap-5 px-4 py-6 sm:px-8 sm:py-7 md:h-full md:min-h-0">
               {children}
             </div>
           </main>

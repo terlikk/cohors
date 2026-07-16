@@ -23,7 +23,9 @@ export default async function AgenciPage() {
           </Link>
         }
       />
-      <Team agents={agents} showHeading={false} />
+      <div className="md:min-h-0 md:flex-1 md:overflow-y-auto">
+        <Team agents={agents} showHeading={false} />
+      </div>
     </>
   );
 }

@@ -19,7 +19,7 @@ export function AgentChat({
     messages.length > 0 && messages[messages.length - 1].from === "boss";
 
   return (
-    <section className="rounded-2xl border border-line bg-panel p-5">
+    <section className="flex flex-col rounded-2xl border border-line bg-panel p-5 md:h-full md:min-h-0">
       <h2 className="text-[13px] font-semibold text-ink">{t.chat.heading}</h2>
       {isManager && (
         <p className="mt-1 text-[12.5px] leading-relaxed text-ink-muted">
@@ -27,7 +27,7 @@ export function AgentChat({
         </p>
       )}
 
-      <div className="mt-3 flex max-h-[420px] flex-col gap-2.5 overflow-y-auto">
+      <div className="mt-3 flex max-h-[420px] flex-col gap-2.5 overflow-y-auto md:max-h-none md:min-h-0 md:flex-1">
         {messages.length === 0 && (
           <p className="py-3 text-sm text-ink-muted">{t.chat.empty}</p>
         )}

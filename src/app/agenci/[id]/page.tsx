@@ -62,6 +62,7 @@ export default async function AgentPage({
         </span>
       </p>
 
+      <div className="grid gap-5 md:min-h-0 md:flex-1 md:grid-cols-[1fr_340px]">
       <AgentChat
         agentId={agent.id}
         agentName={agent.name}
@@ -69,6 +70,7 @@ export default async function AgentPage({
         isManager={agent.role === "manager"}
       />
 
+      <div className="flex flex-col gap-4 md:min-h-0 md:overflow-y-auto">
       <div className="flex items-center rounded-2xl border border-line bg-panel px-5 py-3.5 text-sm">
         <span className="text-ink">{t.pages.agent.budgetRow}</span>
         <span className="ml-auto font-mono text-[13px] text-ink-muted">
@@ -140,6 +142,8 @@ export default async function AgentPage({
           ))}
         </div>
       )}
+      </div>
+      </div>
     </>
   );
 }

@@ -12,7 +12,9 @@ export default async function ZatrudnijPage() {
   return (
     <>
       <PageHead title={t.hire.title} subtitle={t.hire.stepRoleHint} />
-      <HireForm engineAvailability={engineAvailability} />
+      <div className="md:min-h-0 md:flex-1 md:overflow-y-auto md:pr-1">
+        <HireForm engineAvailability={engineAvailability} />
+      </div>
     </>
   );
 }

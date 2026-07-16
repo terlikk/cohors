@@ -15,7 +15,9 @@ export default async function DziennikPage() {
         title={t.pages.dziennik.title}
         subtitle={t.pages.dziennik.subtitle}
       />
-      <Journal events={journal} agents={agents} showHeading={false} />
+      <div className="md:min-h-0 md:flex-1 md:overflow-y-auto">
+        <Journal events={journal} agents={agents} showHeading={false} />
+      </div>
     </>
   );
 }

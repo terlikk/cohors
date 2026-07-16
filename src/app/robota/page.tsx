@@ -27,7 +27,7 @@ export default async function RobotaPage({
           {t.pages.robota.empty}
         </p>
       ) : (
-        <div className="overflow-hidden rounded-2xl border border-line bg-panel">
+        <div className="rounded-2xl border border-line bg-panel md:min-h-0 md:flex-1 md:overflow-y-auto">
           {orders.map((order, i) => (
             <div
               key={order.id}

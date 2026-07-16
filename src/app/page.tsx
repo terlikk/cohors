@@ -73,8 +73,9 @@ export default async function PulpitPage() {
         </Link>
       ))}
 
+      <div className="grid gap-5 md:min-h-0 md:flex-1 md:grid-cols-[1fr_360px]">
       {agents.length === 0 ? (
-        <div className="flex flex-col items-center gap-4 rounded-2xl border border-dashed border-line bg-panel px-4 py-10 text-center">
+        <div className="flex flex-col items-center justify-center gap-4 rounded-2xl border border-dashed border-line bg-panel px-4 py-10 text-center">
           <p className="max-w-sm text-sm text-ink-muted">{t.team.empty}</p>
           <Link
             href="/zatrudnij"
@@ -84,7 +85,7 @@ export default async function PulpitPage() {
           </Link>
         </div>
       ) : (
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+        <div className="grid content-start gap-3 sm:grid-cols-2 md:min-h-0 md:overflow-y-auto">
           {agents.map((a) => (
             <Link
               key={a.id}
@@ -125,7 +126,10 @@ export default async function PulpitPage() {
         </div>
       )}
 
-      <Journal events={journal} agents={agents} showHeading={false} />
+        <div className="md:min-h-0 md:overflow-y-auto">
+          <Journal events={journal} agents={agents} showHeading={false} />
+        </div>
+      </div>
     </>
   );
 }

@@ -17,6 +17,7 @@ export default async function OdbiorPage() {
     <>
       <PageHead title={t.pages.odbior.title} subtitle={t.pages.odbior.subtitle} />
 
+      <div className="flex flex-col gap-4 md:min-h-0 md:flex-1 md:overflow-y-auto">
       {pendingOrders.map((order) => (
         <Link
           key={order.id}
@@ -48,6 +49,7 @@ export default async function OdbiorPage() {
           {t.approvals.empty}
         </p>
       )}
+      </div>
     </>
   );
 }

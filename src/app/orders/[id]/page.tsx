@@ -23,7 +23,7 @@ export default async function OrderPage({
   const taskNumber = new Map(tasks.map((task, i) => [task.id, i + 1]));
 
   return (
-    <div className="flex w-full flex-col gap-5">
+    <div className="flex w-full flex-col gap-5 md:h-full md:min-h-0">
       <header>
         <Link
           href="/robota"
@@ -46,7 +46,7 @@ export default async function OrderPage({
         <p className="mt-1 text-sm leading-relaxed text-ink">„{order.text}”</p>
       </section>
 
-      <ol className="flex flex-col gap-3">
+      <ol className="flex flex-col gap-3 md:min-h-0 md:flex-1 md:overflow-y-auto">
         {tasks.map((task, i) => {
           const agent = agentById(task.agentId);
           return (
