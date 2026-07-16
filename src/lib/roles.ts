@@ -7,13 +7,13 @@ export const roleColor: Record<RoleKey, string> = {
   research: "var(--color-role-research)",
   copywriting: "var(--color-role-copywriting)",
   support: "var(--color-role-support)",
-  custom: "var(--color-accent-2)",
+  custom: "var(--color-accent)",
 };
 
 export const statusColor: Record<AgentStatus, string> = {
-  working: "#7dd87d",
-  waiting_for_boss: "#f0a818",
-  idle: "#6b5c36",
+  working: "#34c759",
+  waiting_for_boss: "#ff9500",
+  idle: "#c7c7cc",
 };
 
 export const statusIsLive = (s: AgentStatus) => s !== "idle";

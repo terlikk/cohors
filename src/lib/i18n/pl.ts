@@ -113,7 +113,7 @@ export const pl = {
       "Np. „Prowadzisz nasz Instagram, ton luźny, 3 posty tygodniowo, wszystko pokazuj mi przed publikacją”",
     engineLabel: "Mózg agenta",
     engineHint:
-      "Silnik podłączymy w etapie 4 — na razie zapisujemy Twój wybór.",
+      "Silnik możesz później zmienić bez utraty roli i historii.",
     budgetLabel: "Miesięczny budżet (USD)",
     budgetHint: "Po przekroczeniu limitu agent automatycznie się zatrzyma.",
     stepOnboarding: "ma kilka pytań na start",
@@ -246,7 +246,7 @@ export const pl = {
   demoBanner:
     "Wersja demo na przykładowych danych — zmiany nie zapisują się na stałe.",
   stageBanner:
-    "Etap 4 — pełna pętla działa: rozkaz → plan → wykonanie → odbiór. Nazwa i szlif wizualny przed nami.",
+    "Wersja rozwojowa — wszystko, co widzisz, działa naprawdę. Nazwa produktu w drodze.",
 };
 
 export type Dictionary = typeof pl;

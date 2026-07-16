@@ -12,7 +12,7 @@ export function OrderBox() {
 
   return (
     <section className="rounded-2xl border border-line bg-panel p-4 sm:p-6">
-      <h2 className="font-display text-sm uppercase tracking-widest text-ink-muted">
+      <h2 className="font-display text-sm font-semibold text-ink">
         {t.order.heading}
       </h2>
       <form action={formAction} className="mt-3 flex flex-col gap-3 sm:flex-row">
@@ -25,7 +25,7 @@ export function OrderBox() {
         <button
           type="submit"
           disabled={pending}
-          className="shrink-0 rounded-xl bg-gradient-to-b from-accent-2 to-accent px-6 py-3 font-display text-sm font-semibold text-[#241900] transition hover:brightness-110 disabled:opacity-60 sm:self-end"
+          className="shrink-0 rounded-full bg-accent px-6 py-3 font-display text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60 sm:self-end"
         >
           {pending ? t.order.submitting : t.order.submit}
         </button>

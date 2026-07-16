@@ -42,7 +42,7 @@ export function HireForm({
     <form action={formAction} className="flex flex-col gap-6">
       {/* Step 1 — role */}
       <section className="rounded-2xl border border-line bg-panel p-4 sm:p-6">
-        <h2 className="font-display text-sm uppercase tracking-widest text-ink-muted">
+        <h2 className="font-display text-sm font-semibold text-ink">
           1 · {t.hire.stepRole}
         </h2>
         <p className="mt-1 text-xs text-ink-muted">{t.hire.stepRoleHint}</p>
@@ -93,7 +93,7 @@ export function HireForm({
 
       {/* Step 2 — name, job description, engine, budget */}
       <section className="rounded-2xl border border-line bg-panel p-4 sm:p-6">
-        <h2 className="font-display text-sm uppercase tracking-widest text-ink-muted">
+        <h2 className="font-display text-sm font-semibold text-ink">
           2 · {t.hire.stepDetails}
         </h2>
         <div className="mt-4 flex flex-col gap-4">
@@ -136,7 +136,7 @@ export function HireForm({
                     value={e}
                     checked={engine === e}
                     onChange={() => setEngine(e)}
-                    className="mt-1 accent-[#f0a818]"
+                    className="mt-1 accent-[#0071e3]"
                   />
                   <span>
                     <span className="flex items-center gap-2 text-sm font-semibold text-ink">
@@ -199,7 +199,7 @@ export function HireForm({
 
       {/* Step 3 — onboarding questions */}
       <section className="rounded-2xl border border-line bg-panel p-4 sm:p-6">
-        <h2 className="font-display text-sm uppercase tracking-widest text-ink-muted">
+        <h2 className="font-display text-sm font-semibold text-ink">
           3 · {name.trim() || t.roles[role]} {t.hire.stepOnboarding}
         </h2>
         <p className="mt-1 text-xs text-ink-muted">{t.hire.stepOnboardingHint}</p>
@@ -230,7 +230,7 @@ export function HireForm({
       <button
         type="submit"
         disabled={pending}
-        className="rounded-xl bg-gradient-to-b from-accent-2 to-accent px-6 py-3.5 font-display text-sm font-semibold text-[#241900] transition hover:brightness-110 disabled:opacity-60"
+        className="rounded-full bg-accent px-6 py-3.5 font-display text-sm font-semibold text-white transition hover:brightness-110 disabled:opacity-60"
       >
         {pending ? t.hire.submitting : t.hire.submit}
       </button>

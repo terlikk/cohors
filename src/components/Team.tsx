@@ -12,7 +12,7 @@ export function Team({ agents }: { agents: Agent[] }) {
         </h2>
         <Link
           href="/hire"
-          className="rounded-xl border border-line bg-panel-2 px-4 py-2 font-display text-xs text-ink transition hover:border-accent/50"
+          className="rounded-full bg-panel-2 px-4 py-2 font-display text-xs text-ink transition hover:border-accent/50"
         >
           + {t.team.hire}
         </Link>
@@ -23,7 +23,7 @@ export function Team({ agents }: { agents: Agent[] }) {
           <p className="max-w-sm text-sm text-ink-muted">{t.team.empty}</p>
           <Link
             href="/hire"
-            className="rounded-xl bg-gradient-to-b from-accent-2 to-accent px-6 py-3 font-display text-sm font-semibold text-[#241900] transition hover:brightness-110"
+            className="rounded-full bg-accent px-6 py-3 font-display text-sm font-semibold text-white transition hover:brightness-110"
           >
             {t.team.hireFirst}
           </Link>
@@ -37,7 +37,7 @@ export function Team({ agents }: { agents: Agent[] }) {
             >
               <header className="flex items-center gap-3">
                 <div
-                  className="flex h-11 w-11 items-center justify-center rounded-xl font-display text-lg font-semibold text-[#1c1408]"
+                  className="flex h-11 w-11 items-center justify-center rounded-xl font-display text-lg font-semibold text-white"
                   style={{ background: roleColor[a.role] }}
                 >
                   {a.name[0]}
@@ -79,7 +79,7 @@ export function Team({ agents }: { agents: Agent[] }) {
                 </div>
                 <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-panel-2">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-accent to-accent-2"
+                    className="h-full rounded-full bg-accent"
                     style={{
                       width: `${Math.min(100, (a.monthCostUsd / a.monthBudgetUsd) * 100)}%`,
                     }}

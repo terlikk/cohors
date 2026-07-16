@@ -26,7 +26,7 @@ export default async function Dashboard() {
     <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
       <AutoRefresh />
       <header className="flex items-center gap-3">
-        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-b from-accent-2 to-accent font-display text-lg font-bold text-[#241900]">
+        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-ink font-display text-lg font-bold text-white">
           ?
         </div>
         <div>

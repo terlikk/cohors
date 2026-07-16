@@ -35,7 +35,7 @@ export function TaskApprovalCard({
       <header className="flex items-center gap-2">
         <span
           className="status-dot status-dot--live"
-          style={{ color: "var(--color-accent)" }}
+          style={{ color: "#ff9500" }}
         />
         <h3 className="font-semibold text-ink">{task.title}</h3>
         {task.feedback.length > 0 && (
@@ -74,7 +74,7 @@ export function TaskApprovalCard({
           <input type="hidden" name="taskId" value={task.id} />
           <button
             type="submit"
-            className="w-full rounded-xl bg-gradient-to-b from-accent-2 to-accent px-4 py-2.5 font-display text-sm font-semibold text-[#241900] transition hover:brightness-110"
+            className="w-full rounded-full bg-accent px-4 py-2.5 font-display text-sm font-semibold text-white transition hover:brightness-110"
           >
             {t.approvals.approve}
           </button>
@@ -82,7 +82,7 @@ export function TaskApprovalCard({
         <button
           type="button"
           onClick={() => setShowFeedback((v) => !v)}
-          className={`flex-1 rounded-xl border px-4 py-2.5 font-display text-sm text-ink transition ${
+          className={`flex-1 rounded-full border px-4 py-2.5 font-display text-sm text-ink transition ${
             showFeedback
               ? "border-accent bg-panel-2"
               : "border-line bg-panel-2 hover:border-accent/50"
@@ -107,7 +107,7 @@ export function TaskApprovalCard({
           <button
             type="submit"
             disabled={feedbackPending}
-            className="self-end rounded-xl border border-accent/50 bg-panel-2 px-4 py-2 font-display text-xs text-accent transition hover:bg-accent/10 disabled:opacity-60"
+            className="self-end rounded-full border border-accent/50 bg-panel-2 px-4 py-2 font-display text-xs text-accent transition hover:bg-accent/10 disabled:opacity-60"
           >
             {t.approvals.feedbackSubmit}
           </button>
