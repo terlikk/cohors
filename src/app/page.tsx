@@ -1,154 +1,273 @@
-import { desc } from "drizzle-orm";
-import { db, schema } from "@/db";
+import Link from "next/link";
 import { ApiaryMark, Hexagon } from "@/components/Hexagon";
-import { StatusDot } from "@/components/StatusDot";
-import { roleColor, ROLE_BY_KEY } from "@/lib/roles";
-import { WORKER_STATUS_LABEL, type WorkerStatus } from "@/lib/status";
+import { HoneycombCluster } from "@/components/Honeycomb";
+import { ROLE_TEMPLATES } from "@/lib/roles";
 
-export const dynamic = "force-dynamic";
-
-export default function Dashboard() {
-  const workers = db.select().from(schema.workers).all();
-  const events = db
-    .select()
-    .from(schema.events)
-    .orderBy(desc(schema.events.createdAt))
-    .limit(20)
-    .all();
-
+export default function Landing() {
   return (
-    <main className="mx-auto max-w-4xl px-4 pb-24 pt-6 sm:px-6">
-      {/* Header */}
-      <header className="mb-8 flex items-center justify-between">
-        <div className="flex items-center gap-3">
-          <ApiaryMark />
+    <div className="min-h-screen">
+      <NavBar />
+
+      {/* Hero */}
+      <section className="mx-auto max-w-5xl px-4 pb-10 pt-10 sm:px-6 sm:pt-16">
+        <div className="grid items-center gap-10 md:grid-cols-2">
           <div>
-            <h1 className="text-xl leading-none">Apiary</h1>
-            <p className="label-mono mt-1">twoja pasieka agentów AI</p>
+            <span className="label-mono inline-flex items-center gap-2 rounded-full border border-hive-border bg-hive-panel px-3 py-1">
+              open source · MIT
+            </span>
+            <h1 className="mt-5 text-4xl leading-[1.05] sm:text-5xl">
+              Zatrudnij <span className="text-honey-light">rój</span> agentów AI.
+              <br />
+              Rządź jak pszczelarz.
+            </h1>
+            <p className="mt-5 max-w-md text-lg text-wax-dim">
+              Apiary to pasieka, w której agenci AI są Twoimi robotnicami —
+              marketing, programista, research, copy, support. Ty tylko
+              zatrudniasz, wydajesz rozkazy po ludzku i zatwierdzasz wyniki.
+              Reszta dzieje się sama.
+            </p>
+            <div className="mt-7 flex flex-wrap gap-3">
+              <Link href="/hive" className="btn-honey">
+                Wejdź do ula →
+              </Link>
+              <a
+                href="https://github.com/terlikk/printflow"
+                className="btn-ghost"
+              >
+                Zobacz kod
+              </a>
+            </div>
+            <p className="label-mono mt-6">
+              npm install &nbsp;·&nbsp; npm run dev &nbsp;·&nbsp; gotowe
+            </p>
+          </div>
+
+          <div className="order-first md:order-last">
+            <HoneycombCluster />
           </div>
         </div>
-        <div className="label-mono flex items-center gap-2">
-          <StatusDot status="free" />
-          {workers.length} robotnic
-        </div>
-      </header>
-
-      {/* 1. Order field */}
-      <section className="panel-raised mb-6 p-4 sm:p-5">
-        <label className="label-mono mb-2 block">Wydaj rozkaz pasiece</label>
-        <div className="flex flex-col gap-3 sm:flex-row">
-          <textarea
-            disabled
-            placeholder="np. W czwartek premiera nowej wersji apki — ogarnijcie promocję i sprawdźcie technikalia…"
-            className="min-h-[64px] flex-1 resize-none rounded-xl border border-hive-border bg-hive-bg/60 px-3 py-2.5 text-wax placeholder:text-wax-dim/70 focus:outline-none"
-          />
-          <button disabled className="btn-honey self-end opacity-60">
-            Rozbij na zadania
-          </button>
-        </div>
-        <p className="mt-2 text-xs text-wax-dim">
-          Pole ożyje w kolejnym etapie — najpierw zatrudnimy robotnice.
-        </p>
       </section>
 
-      {/* 2. Waiting for the beekeeper */}
-      <Section title="Czeka na pszczelarza" accent>
-        <EmptyState text="Nic nie czeka na Twoją decyzję. Gdy robotnica skończy zadanie, jej wynik pojawi się tutaj do zatwierdzenia." />
-      </Section>
+      {/* Metaphor strip */}
+      <section className="mx-auto max-w-5xl px-4 py-8 sm:px-6">
+        <div className="panel grid gap-px overflow-hidden sm:grid-cols-3">
+          <MetaphorItem
+            k="Ty"
+            v="Pszczelarz"
+            d="Szef, który zatrudnia i zatwierdza — bez technicznej konfiguracji."
+          />
+          <MetaphorItem
+            k="Agenci"
+            v="Robotnice"
+            d="Pracownicy z rolami: każda ma swój fach i swój kontekst."
+          />
+          <MetaphorItem
+            k="System"
+            v="Pasieka"
+            d="Pracuje w tle, w rytmie — a Ty widzisz wszystko na żywo."
+          />
+        </div>
+      </section>
 
-      {/* 3. The honeycomb of workers */}
-      <Section
-        title="Plaster"
-        action={
-          <button disabled className="btn-ghost opacity-60">
-            + Zatrudnij robotnicę
-          </button>
-        }
-      >
-        {workers.length === 0 ? (
-          <EmptyState text="Pasieka jest jeszcze pusta. Zatrudnianie robotnic uruchomimy w Etapie 1." />
-        ) : (
-          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-            {workers.map((w) => (
-              <WorkerCell key={w.id} name={w.name} role={w.role} status={w.status as WorkerStatus} />
-            ))}
+      {/* How it works */}
+      <section id="jak" className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+        <SectionHeading
+          eyebrow="Jak to działa"
+          title="Cztery kroki, zero konfiguracji"
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+          <StepCard
+            n="01"
+            title="Zatrudnij"
+            body="Wybierasz rolę, nadajesz imię i opisujesz stanowisko jednym zdaniem. Nowa robotnica sama dopytuje o resztę — jak pracownik pierwszego dnia."
+          />
+          <StepCard
+            n="02"
+            title="Wydaj rozkaz"
+            body="Piszesz po ludzku, np. „w czwartek premiera — ogarnijcie promocję i technikalia”. Ul rozbija to na zadania i przydziela właściwym robotnicom."
+          />
+          <StepCard
+            n="03"
+            title="Zatwierdź plan"
+            body="Widzisz plan zanim cokolwiek ruszy: Dawaj albo Zmień. Zadania mogą zależeć od siebie — research karmi marketing automatycznie."
+          />
+          <StepCard
+            n="04"
+            title="Ul pracuje sam"
+            body="Robotnice budzą się cyklicznie, biorą zadania i zgłaszają wyniki do akceptacji. Nic nie wychodzi na zewnątrz bez Twojego tapnięcia."
+          />
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+        <SectionHeading
+          eyebrow="Co potrafi pasieka"
+          title="Wygodnie dla człowieka, nie dla programisty"
+        />
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+          <Feature
+            title="Rozkazy po ludzku"
+            body="Jedno pole: „Wydaj rozkaz pasiece”. Rozbijanie na zadania i przydział dzieją się same."
+          />
+          <Feature
+            title="Ty zatwierdzasz wszystko"
+            body="Post, newsletter, wdrożenie kodu — nic bez zgody pszczelarza. Jedno tapnięcie z telefonu."
+          />
+          <Feature
+            title="Praca w rytmie"
+            body="Heartbeat: agenci budzą się, sprawdzają kolejkę i biorą robotę. Niczego nie odpalasz ręcznie."
+          />
+          <Feature
+            title="Budżety pod kontrolą"
+            body="Miesięczny limit w dolarach na agenta. Po przekroczeniu robotnica sama staje, a Ty dostajesz sygnał."
+          />
+          <Feature
+            title="Wymienne mózgi"
+            body="Pod spodem: API Anthropic, Claude Code, Codex albo własny agent przez HTTP. Silnik podmienisz bez utraty roli."
+          />
+          <Feature
+            title="Wszystko widać"
+            body="Kolejka decyzji na górze, plaster robotnic ze statusami i żywy dziennik: kto co zrobił i ile to kosztowało."
+          />
+        </div>
+      </section>
+
+      {/* Roles */}
+      <section id="role" className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+        <SectionHeading
+          eyebrow="Role w ulu"
+          title="Każda robotnica ma swój fach"
+        />
+        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-5">
+          {ROLE_TEMPLATES.map((r) => (
+            <div
+              key={r.key}
+              className="panel flex flex-col items-center gap-3 p-5 text-center"
+            >
+              <Hexagon color={r.color}>{r.glyph}</Hexagon>
+              <div>
+                <div className="font-medium">{r.label}</div>
+                <div className="mt-1 text-xs text-wax-dim">{r.tagline}</div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </section>
+
+      {/* CTA */}
+      <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+        <div className="panel-raised flex flex-col items-center gap-5 p-8 text-center sm:p-12">
+          <ApiaryMark size={40} />
+          <h2 className="max-w-lg text-2xl sm:text-3xl">
+            Uruchom własną pasiekę w minutę
+          </h2>
+          <p className="max-w-md text-wax-dim">
+            Bez baz do stawiania, bez serwerów. Sklonuj, odpal i zatrudnij
+            pierwszą robotnicę.
+          </p>
+          <pre className="label-mono overflow-x-auto rounded-xl border border-hive-border bg-hive-bg px-5 py-3 text-left text-wax">
+            <code>{`git clone …\nnpm install\nnpm run dev`}</code>
+          </pre>
+          <Link href="/hive" className="btn-honey">
+            Wejdź do ula →
+          </Link>
+        </div>
+      </section>
+
+      <footer className="border-t border-hive-border">
+        <div className="mx-auto flex max-w-5xl flex-col items-center justify-between gap-3 px-4 py-8 text-sm text-wax-dim sm:flex-row sm:px-6">
+          <div className="flex items-center gap-2">
+            <ApiaryMark size={20} />
+            <span>Apiary</span>
           </div>
-        )}
-      </Section>
-
-      {/* 4. The hive journal */}
-      <Section title="Dziennik ula">
-        {events.length === 0 ? (
-          <EmptyState text="Cicho w ulu. Tu na żywo zobaczysz kto co zaczął, skończył i ile to kosztowało." />
-        ) : (
-          <ul className="divide-y divide-hive-border">
-            {events.map((e) => (
-              <li key={e.id} className="flex items-center gap-3 py-2.5 text-sm">
-                <span className="label-mono shrink-0">{e.type}</span>
-                <span className="text-wax">{e.message}</span>
-              </li>
-            ))}
-          </ul>
-        )}
-      </Section>
-
-      <footer className="mt-10 text-center text-xs text-wax-dim">
-        Apiary · open source (MIT) · fundament (Etap 0)
+          <span className="label-mono">open source · MIT · zbudowane dla ludzi</span>
+        </div>
       </footer>
-    </main>
+    </div>
   );
 }
 
-function Section({
+function NavBar() {
+  return (
+    <nav className="sticky top-0 z-10 border-b border-hive-border/70 bg-hive-bg/80 backdrop-blur">
+      <div className="mx-auto flex max-w-5xl items-center justify-between px-4 py-3 sm:px-6">
+        <Link href="/" className="flex items-center gap-2.5">
+          <ApiaryMark />
+          <span className="text-lg">Apiary</span>
+        </Link>
+        <div className="flex items-center gap-5 text-sm text-wax-dim">
+          <a href="#jak" className="hidden hover:text-wax sm:inline">
+            Jak działa
+          </a>
+          <a href="#role" className="hidden hover:text-wax sm:inline">
+            Role
+          </a>
+          <Link href="/hive" className="btn-honey px-3.5 py-2 text-sm">
+            Wejdź do ula
+          </Link>
+        </div>
+      </div>
+    </nav>
+  );
+}
+
+function SectionHeading({
+  eyebrow,
   title,
-  children,
-  action,
-  accent = false,
 }: {
+  eyebrow: string;
   title: string;
-  children: React.ReactNode;
-  action?: React.ReactNode;
-  accent?: boolean;
 }) {
   return (
-    <section className="mb-6">
-      <div className="mb-2 flex items-center justify-between">
-        <h2 className="flex items-center gap-2 text-base">
-          {accent && <StatusDot status="waiting" size={8} />}
-          {title}
-        </h2>
-        {action}
-      </div>
-      <div className="panel p-4">{children}</div>
-    </section>
+    <div className="mb-7">
+      <div className="label-mono text-honey">{eyebrow}</div>
+      <h2 className="mt-1 text-2xl sm:text-3xl">{title}</h2>
+    </div>
   );
 }
 
-function EmptyState({ text }: { text: string }) {
-  return <p className="py-4 text-center text-sm text-wax-dim">{text}</p>;
+function MetaphorItem({
+  k,
+  v,
+  d,
+}: {
+  k: string;
+  v: string;
+  d: string;
+}) {
+  return (
+    <div className="bg-hive-panel p-6">
+      <div className="label-mono">{k}</div>
+      <div className="mt-1 font-display text-xl text-honey-light">{v}</div>
+      <p className="mt-2 text-sm text-wax-dim">{d}</p>
+    </div>
+  );
 }
 
-function WorkerCell({
-  name,
-  role,
-  status,
+function StepCard({
+  n,
+  title,
+  body,
 }: {
-  name: string;
-  role: string;
-  status: WorkerStatus;
+  n: string;
+  title: string;
+  body: string;
 }) {
-  const template = ROLE_BY_KEY[role as keyof typeof ROLE_BY_KEY];
   return (
-    <div className="panel-raised flex flex-col items-center gap-2 p-4">
-      <Hexagon color={roleColor(role)}>{template?.glyph ?? "★"}</Hexagon>
-      <div className="text-center">
-        <div className="font-medium">{name}</div>
-        <div className="label-mono">{template?.label ?? role}</div>
-      </div>
-      <div className="flex items-center gap-1.5 text-xs text-wax-dim">
-        <StatusDot status={status} size={7} />
-        {WORKER_STATUS_LABEL[status]}
-      </div>
+    <div className="panel p-5">
+      <div className="label-mono text-honey">{n}</div>
+      <h3 className="mt-2 text-lg">{title}</h3>
+      <p className="mt-2 text-sm text-wax-dim">{body}</p>
+    </div>
+  );
+}
+
+function Feature({ title, body }: { title: string; body: string }) {
+  return (
+    <div className="panel p-5">
+      <h3 className="text-lg">{title}</h3>
+      <p className="mt-2 text-sm text-wax-dim">{body}</p>
     </div>
   );
 }
