@@ -56,6 +56,21 @@ cp .env.example .env
 # then edit .env and set ANTHROPIC_API_KEY=...
 ```
 
+## Hosting
+
+Apiary is built to run **locally** or on a **persistent host** — the worker-bee
+heartbeat is a long-running loop, and the Claude Code / Codex engines need
+access to your own machine. A few options:
+
+- **Locally** (recommended for real use): `npm run dev`. The SQLite file
+  persists in `./data`.
+- **A persistent host** (Railway, Render, Fly.io, a VPS, a container): the full
+  app works, including the heartbeat and hosted engines.
+- **Vercel**: great for the **landing page**, and the dashboard renders too, but
+  Vercel is serverless — its filesystem is read-only and ephemeral (the database
+  falls back to `/tmp` and does **not** persist), and background heartbeats don't
+  run. Use it for a demo of the UI, not for a working hive.
+
 ## Tech stack
 
 | Concern | Choice | Why |

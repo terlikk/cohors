@@ -13,7 +13,13 @@ import * as schema from "./schema";
  * enough.
  */
 
-const DB_PATH = process.env.APIARY_DB_PATH ?? "./data/apiary.db";
+// Locally the database lives next to the project (persistent). On a serverless
+// host (e.g. Vercel) the project directory is read-only, so fall back to the
+// writable /tmp directory. Note: serverless filesystems are ephemeral, so data
+// there does not persist between invocations — Apiary is meant to run on a
+// persistent host or locally. See README for hosting notes.
+const DEFAULT_DB_PATH = process.env.VERCEL ? "/tmp/apiary.db" : "./data/apiary.db";
+const DB_PATH = process.env.APIARY_DB_PATH ?? DEFAULT_DB_PATH;
 
 function bootstrap(db: Database.Database) {
   db.pragma("journal_mode = WAL");
