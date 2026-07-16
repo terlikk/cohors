@@ -1,191 +1,87 @@
-# 🏭 PrintFlow — Platforma do automatyzacji druków 3D
+<div align="center">
 
-## Koncept
+# 🐝 Apiary
 
-SaaS / self-hosted platforma do zarządzania farmą drukarek 3D — od przyjęcia zlecenia po wysyłkę gotowego wydruku. Multi-tenant architektura, gotowa na skalowanie.
+**Manage a team of AI agents the way a beekeeper manages worker bees.**
 
----
+You are the beekeeper. Your AI agents are the worker bees — each with a real
+role (marketing, developer, research, copywriting, support). You hire them,
+give orders in plain language, and approve what goes out. Everything else runs
+by itself, inside the hive.
 
-## 🎯 Core Features
+Built for non-technical people: less configuration, more conversation.
 
-### 1. Upload & Auto-Wycena
-- Klient wrzuca STL/3MF → automatyczny slicing (PrusaSlicer/OrcaSlicer CLI w Dockerze)
-- Automatyczna wycena: czas druku × stawka + materiał (waga × cena/kg) + amortyzacja drukarki + marża
-- Podgląd 3D modelu w przeglądarce (Three.js / React Three Fiber)
-- Walidacja modelu (manifold check, rozmiar vs blat drukarki)
+`MIT licensed` · `Polish UI (more languages later)`
 
-### 2. Fleet Management & Dashboard
-- Live status każdej drukarki: idle / printing / error / maintenance
-- Mapa farmy z wizualnym layoutem
-- Historia awarii, success rate per drukarka
-- Zarządzanie materiałami (stock filamentu, auto-alert przy niskim stanie)
-
-### 3. Inteligentne Kolejkowanie & Scheduling
-- Auto-assign zlecenia do wolnej drukarki (matching: materiał, rozmiar blatu, nozzle, jakość)
-- Optymalizacja kolejki pod czas / materiał / priorytet
-- Drag & drop priorytetów w UI
-- ETA dla klienta w czasie rzeczywistym
-
-### 4. Live Monitoring & AI Quality Control
-- Podgląd z kamer per drukarka (stream MJPEG/WebRTC)
-- Progress %, temperatury, ETA w real-time (WebSockets)
-- **AI spaghetti/warping detection** — model CV (YOLO/custom) analizuje kamerę i auto-pauzuje druk przy wykryciu błędu
-- Timelapse generowanie
-- Powiadomienia: druk skończony, błąd, brak filamentu (email/push/Discord webhook)
-
-### 5. Panel Klienta
-- Złóż zamówienie → płatność (Stripe) → tracking statusu na żywo
-- Historia zamówień, ponowne zamówienie jednym klikiem
-- Wgląd w ETA i etap realizacji
-
-### 6. Integracja E-commerce
-- Plugin Shopify / WooCommerce — klient zamawia w sklepie → auto-zlecenie w PrintFlow
-- API publiczne do integracji z dowolnym systemem
-- Webhook na zmianę statusu zlecenia
-
-### 7. Multi-Tenant (SaaS)
-- Jedna instancja, wielu klientów
-- Row-level security w PostgreSQL
-- Billing per tenant (Stripe subscriptions)
-- Role: admin farmy / operator / klient
+</div>
 
 ---
 
-## 🔌 Integracje z drukarkami
+## Why Apiary
 
-| Drukarka | Protokół | Status |
+Inspired by tools like Paperclip, but aimed at humans who don't want to
+configure anything. You don't wire up prompts and pipelines — you **hire**,
+you **give orders like a boss**, and you **approve results**. The hive handles
+decomposition, scheduling, dependencies, costs and budgets.
+
+- **Hiring, not configuration.** Pick a role, name your bee, describe the job
+  in one sentence. The new hire asks onboarding questions like a real employee
+  on day one.
+- **Orders in plain language.** Type one command for the whole hive; it's
+  broken into tasks and assigned to the right bees — with dependencies, so
+  research feeds marketing automatically. You approve the plan first.
+- **You approve everything that leaves the hive.** Nothing is published,
+  emailed or deployed without a tap of approval.
+- **Bees work on their own,** waking on a heartbeat to pick up ready tasks.
+- **Budgets keep costs in check.** Per-agent monthly caps with automatic stop.
+- **Swappable brains.** Each bee runs on an engine — Anthropic API (works out
+  of the box), Claude Code, Codex, or any custom agent over HTTP — and the
+  brain can be swapped without losing the role or history.
+
+## Quick start
+
+```bash
+npm install
+npm run dev
+```
+
+Then open <http://localhost:3000>.
+
+That's it — no database to set up and no servers to stand up. A local SQLite
+file is created automatically on first run. To let the bees actually think,
+copy `.env.example` to `.env` and paste an Anthropic API key:
+
+```bash
+cp .env.example .env
+# then edit .env and set ANTHROPIC_API_KEY=...
+```
+
+## Tech stack
+
+| Concern | Choice | Why |
 |---|---|---|
-| Klipper / Moonraker | REST + WebSocket | Priorytet 1 |
-| OctoPrint | REST API | Priorytet 1 |
-| Bambu Lab | Bambu Cloud API | Priorytet 2 |
-| Prusa Connect | Prusa API | Priorytet 2 |
+| App | **Next.js (App Router) + TypeScript** | One process serves UI **and** API |
+| Database | **SQLite + Drizzle ORM** | A single file, created on start — zero setup |
+| Styling | **Tailwind CSS** | The warm "inside the hive" theme + honeycomb hexes |
+| Live updates | **Server-Sent Events** | Live journal and statuses, no extra services |
+| Scheduling | **In-process heartbeat** | Bees wake on a tick — nothing to run by hand |
+| Brains | **Engine adapters** | `anthropic` (built), `claude-code` / `codex` / `http` (extension points) |
 
----
+## Roadmap
 
-## 🛠 Stack technologiczny
+Apiary is built in stages:
 
-| Warstwa | Technologia |
-|---|---|
-| **Frontend** | Next.js 15 + TypeScript + Tailwind + shadcn/ui |
-| **Backend API** | Next.js API Routes (main) + FastAPI Python workers (slicing, AI) |
-| **Baza danych** | PostgreSQL + Prisma ORM |
-| **Kolejki** | BullMQ + Redis |
-| **Real-time** | WebSockets (Socket.io lub native WS) |
-| **Slicing engine** | PrusaSlicer CLI / OrcaSlicer CLI w Docker |
-| **3D Preview** | Three.js / React Three Fiber |
-| **AI / CV** | Python + YOLO (spaghetti detection) |
-| **Płatności** | Stripe (jednorazowe + subskrypcje) |
-| **Auth** | NextAuth.js / Clerk (multi-tenant) |
-| **Infra** | Docker Compose → K8s |
-| **Monitoring** | Grafana + Prometheus (opcjonalnie) |
+- [x] **Stage 0 — Foundation.** Project scaffold, honey design system,
+  hexagon components, zero-config database, empty dashboard shell.
+- [ ] **Stage 1 — Hiring.** Role templates + onboarding Q&A.
+- [ ] **Stage 2 — Orders → plan → execution.** Planner decomposition, plan
+  approval, heartbeat execution with task dependencies.
+- [ ] **Stage 3 — Approvals + journal.** "Waiting for the beekeeper" queue,
+  approve / comment feedback loop, live journal.
+- [ ] **Stage 4 — Budgets.** Per-task cost accounting, monthly caps, auto-stop.
+- [ ] **Stage 5 — Engines + polish.** Claude Code / Codex / HTTP adapters,
+  mobile refinements.
 
-**Dlaczego hybryda Node + Python?**
-- Next.js = szybki full-stack development, SSR, świetny DX
-- Python workers = slicing CLI, AI/CV modele, ciężkie obliczenia — Python ma lepszy ekosystem do tego
+## License
 
----
-
-## 🏗 Architektura
-
-```
-┌─────────────┐     ┌──────────────┐     ┌─────────────────┐
-│   Frontend   │────▶│  Next.js API │────▶│   PostgreSQL    │
-│  (Next.js)   │     │   (main)     │     │   (+ Prisma)    │
-└─────────────┘     └──────┬───────┘     └─────────────────┘
-                           │
-                    ┌──────▼───────┐
-                    │  Redis +     │
-                    │  BullMQ      │
-                    └──────┬───────┘
-                           │
-              ┌────────────┼────────────┐
-              ▼            ▼            ▼
-        ┌──────────┐ ┌──────────┐ ┌──────────┐
-        │ Slicing  │ │ AI/CV    │ │ Printer  │
-        │ Worker   │ │ Worker   │ │ Bridge   │
-        │ (Python) │ │ (Python) │ │ (Node)   │
-        └──────────┘ └──────────┘ └────┬─────┘
-                                       │
-                              ┌────────▼────────┐
-                              │   Drukarki      │
-                              │ (Klipper/Octo)  │
-                              └─────────────────┘
-```
-
----
-
-## 🚀 Fazy rozwoju
-
-### Faza 1 — MVP (4-6 tygodni)
-- [ ] Setup projektu (Next.js + Prisma + Docker)
-- [ ] Auth + multi-tenant foundation
-- [ ] Dashboard z listą drukarek (Klipper/Moonraker API)
-- [ ] Upload STL → slicing → wycena → start druku
-- [ ] Podstawowa kolejka FIFO
-- [ ] Panel klienta: zamówienie + tracking
-- [ ] Stripe płatności
-
-### Faza 2 — Monitoring (2-3 tygodnie)
-- [ ] Live monitoring: progress, temperatury, ETA
-- [ ] Kamery: podgląd MJPEG
-- [ ] Alerty: email + webhook
-- [ ] Timelapse
-
-### Faza 3 — AI & Inteligencja (3-4 tygodnie)
-- [ ] AI spaghetti/warping detection + auto-pause
-- [ ] Inteligentny scheduling (nie tylko FIFO)
-- [ ] Auto-wycena z amortyzacją
-- [ ] Zarządzanie stockiem filamentu
-
-### Faza 4 — E-commerce & Scale (4+ tygodnie)
-- [ ] Plugin Shopify / WooCommerce
-- [ ] API publiczne + dokumentacja
-- [ ] Marketplace modeli (opcjonalnie)
-- [ ] Kubernetes deployment
-
----
-
-## 🏆 Co wyróżnia od konkurencji
-
-| Feature | OctoFarm | Obico | SimplyPrint | **PrintFlow** |
-|---|---|---|---|---|
-| Self-hosted | ✅ | ❌ | ❌ | ✅ |
-| SaaS multi-tenant | ❌ | ✅ | ✅ | ✅ |
-| AI fail detection | ❌ | ✅ | ❌ | ✅ |
-| Auto-wycena | ❌ | ❌ | ❌ | ✅ |
-| E-commerce plugin | ❌ | ❌ | ❌ | ✅ |
-| Auto-scheduling | ❌ | ❌ | Częściowo | ✅ |
-| Open API | ❌ | Częściowo | ❌ | ✅ |
-
----
-
-## 📁 Struktura projektu
-
-```
-printflow/
-├── apps/
-│   └── web/                 # Next.js frontend + API
-│       ├── app/
-│       │   ├── (auth)/      # Login, register
-│       │   ├── (dashboard)/ # Main dashboard
-│       │   ├── api/         # API routes
-│       │   └── layout.tsx
-│       ├── components/
-│       ├── lib/
-│       └── package.json
-├── packages/
-│   ├── db/                  # Prisma schema + migrations
-│   ├── printer-bridge/      # Integracje z drukarkami
-│   └── shared/              # Shared types + utils
-├── workers/
-│   ├── slicer/              # Python slicing worker
-│   └── ai-monitor/          # Python AI/CV worker
-├── docker/
-│   ├── docker-compose.yml
-│   ├── Dockerfile.web
-│   ├── Dockerfile.slicer
-│   └── Dockerfile.ai
-├── docs/
-├── README.md
-└── turbo.json               # Turborepo config
-```
+[MIT](./LICENSE)

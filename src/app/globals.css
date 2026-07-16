@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+}
+
+@layer base {
+  html,
+  body {
+    @apply bg-hive-bg text-wax;
+    font-family: var(--font-instrument), system-ui, sans-serif;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  body {
+    /* Soft honey glow from the top of the hive. */
+    background-image: theme("backgroundImage.honey-glow");
+    background-attachment: fixed;
+    min-height: 100vh;
+  }
+
+  h1,
+  h2,
+  h3 {
+    font-family: var(--font-unbounded), system-ui, sans-serif;
+    letter-spacing: -0.01em;
+  }
+
+  ::selection {
+    background: rgba(240, 168, 24, 0.3);
+  }
+}
+
+@layer components {
+  /* Honeycomb hexagon clip — used for logo, avatars and the worker grid. */
+  .hex {
+    clip-path: polygon(
+      50% 0%,
+      100% 25%,
+      100% 75%,
+      50% 100%,
+      0% 75%,
+      0% 25%
+    );
+  }
+
+  .panel {
+    @apply rounded-2xl border border-hive-border bg-hive-panel;
+  }
+
+  .panel-raised {
+    @apply rounded-2xl border border-hive-border bg-hive-panel2;
+  }
+
+  .btn-honey {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5
+      font-medium text-hive-bg transition active:scale-[0.98];
+    background-image: theme("backgroundImage.honey-btn");
+    box-shadow: 0 6px 20px -8px rgba(240, 168, 24, 0.6);
+  }
+
+  .btn-ghost {
+    @apply inline-flex items-center justify-center gap-2 rounded-xl border
+      border-hive-border bg-hive-panel2 px-4 py-2.5 font-medium text-wax
+      transition hover:border-honey/40 active:scale-[0.98];
+  }
+
+  .label-mono {
+    font-family: var(--font-mono), monospace;
+    @apply text-xs uppercase tracking-wider text-wax-dim;
+  }
+}
