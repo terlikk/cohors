@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@theme {
+  /* Warm dark base — identity-neutral until the project name is decided. */
+  --color-bg: #161006;
+  --color-panel: #221a0c;
+  --color-panel-2: #2b2110;
+  --color-line: #3a2d14;
+  --color-accent: #f0a818;
+  --color-accent-2: #ffc94a;
+  --color-ink: #f5e6c4;
+  --color-ink-muted: #9a8759;
+
+  /* Role colors */
+  --color-role-marketing: #f07050;
+  --color-role-developer: #b99af5;
+  --color-role-research: #6fc9e8;
+  --color-role-copywriting: #f0a818;
+  --color-role-support: #7dd87d;
+
+  --font-display: var(--font-unbounded), system-ui, sans-serif;
+  --font-sans: var(--font-instrument), system-ui, sans-serif;
+  --font-mono: var(--font-jetbrains), ui-monospace, monospace;
+}
+
+html {
+  background: var(--color-bg);
+}
+
+body {
+  /* Soft warm glow at the top of the page. */
+  background:
+    radial-gradient(
+      900px 420px at 50% -120px,
+      rgba(240, 168, 24, 0.14),
+      transparent 70%
+    ),
+    var(--color-bg);
+  color: var(--color-ink);
+  font-family: var(--font-sans);
+  min-height: 100dvh;
+}
+
+@keyframes pulse-dot {
+  0%,
+  100% {
+    opacity: 1;
+    box-shadow: 0 0 0 0 currentColor;
+  }
+  50% {
+    opacity: 0.55;
+  }
+}
+
+.status-dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 9999px;
+  display: inline-block;
+  background: currentColor;
+}
+
+.status-dot--live {
+  animation: pulse-dot 1.8s ease-in-out infinite;
+}
