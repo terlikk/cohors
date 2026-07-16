@@ -166,7 +166,7 @@ export const pl = {
     heading: "Zespół",
     hire: "Zatrudnij agenta",
     empty:
-      "Nie masz jeszcze żadnych agentów. Zatrudnij pierwszego — to dwie minuty.",
+      "Nie masz jeszcze zespołu. Zacznij od zatrudnienia Szefa zespołu — opiszesz mu cel, a on sam zatrudni resztę agentów i przygotuje plan do Twojej akceptacji.",
     hireFirst: "Zatrudnij pierwszego agenta",
     budget: "budżet",
     thisMonth: "w tym miesiącu",
