@@ -86,6 +86,50 @@ export async function hireAgent(
   redirect("/");
 }
 
+/** First-run flow: hires the team manager and lands in their chat. */
+export async function hireBossAction(
+  _prev: HireFormState,
+  formData: FormData,
+): Promise<HireFormState> {
+  const name = String(formData.get("name") ?? "").trim();
+  if (!name) return { error: t.hire.errors.nameRequired };
+
+  const engine = String(formData.get("engine") ?? "") as EngineKey;
+  const engineUrl = String(formData.get("engineUrl") ?? "").trim();
+  const budget = Number(formData.get("budget") ?? 10);
+
+  const questions = t.onboardingQuestions.manager;
+  const onboarding = questions.map((question, i) => ({
+    question,
+    answer: String(formData.get(`answer_${i}`) ?? "").trim(),
+  }));
+
+  const id = createAgent({
+    name,
+    role: "manager",
+    jobDescription: t.hireBoss.defaultJob,
+    engine: ENGINES.includes(engine) ? engine : "claude_code",
+    engineConfig: engine === "http" && engineUrl ? { url: engineUrl } : undefined,
+    monthBudgetUsd: Number.isFinite(budget) && budget > 0 ? budget : 10,
+    onboarding,
+  });
+
+  addJournalEvent({
+    kind: "hired",
+    text: t.journalTexts.hired(name, t.roles.manager),
+  });
+
+  const goal = onboarding[1]?.answer;
+  addMessage(
+    id,
+    "agent",
+    goal ? t.hireBoss.greetingWithGoal(goal) : t.hireBoss.greeting,
+  );
+
+  revalidatePath("/");
+  redirect(`/agenci/${id}/czat`);
+}
+
 export interface OrderFormState {
   error?: string;
 }

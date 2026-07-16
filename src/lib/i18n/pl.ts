@@ -167,7 +167,7 @@ export const pl = {
     hire: "Zatrudnij agenta",
     empty:
       "Nie masz jeszcze zespołu. Zacznij od zatrudnienia Szefa zespołu — opiszesz mu cel, a on sam zatrudni resztę agentów i przygotuje plan do Twojej akceptacji.",
-    hireFirst: "Zatrudnij pierwszego agenta",
+    hireFirst: "Zatrudnij szefa zespołu",
     budget: "budżet",
     thisMonth: "w tym miesiącu",
   },
@@ -206,6 +206,23 @@ export const pl = {
       jobRequired: "Napisz jedno zdanie o tym, czym ma się zajmować.",
       customRoleRequired: "Nazwij własną rolę.",
     },
+  },
+  hireBoss: {
+    title: "Zatrudnij szefa zespołu",
+    subtitle:
+      "Twój pierwszy agent. Opowiedz mu o firmie i celach — on zatrudni resztę zespołu, rozdzieli zadania i będzie kierować pracą. Ty tylko akceptujesz plany i wyniki.",
+    nameLabel: "Jak ma się nazywać?",
+    namePlaceholder: "Np. Wiktor",
+    submit: "Zatrudnij szefa",
+    submitting: "Zatrudniam…",
+    footnote:
+      "Wszystkie odpowiedzi trafią do jego profilu — możesz je potem uzupełnić na czacie.",
+    defaultJob:
+      "Kierujesz całym zespołem: zatrudniasz agentów, rozdzielasz zadania i realizujesz cele firmy.",
+    greetingWithGoal: (goal: string) =>
+      `Cześć, szefie! Przeczytałem wszystko o firmie. Rozumiem, że cel to: „${goal}”. Napisz mi go tutaj (albo doprecyzuj) — zatrudnię odpowiednich agentów i przygotuję plan do Twojej akceptacji.`,
+    greeting:
+      "Cześć, szefie! Jestem gotowy do pracy. Opisz mi cel — np. „Wygeneruj 10 000 zł sprzedaży w miesiąc” — a zatrudnię odpowiednich agentów i przygotuję plan do Twojej akceptacji.",
   },
   engines: {
     claude_code: "Claude Code",
