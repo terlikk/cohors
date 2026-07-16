@@ -15,6 +15,64 @@ export const pl = {
     name: "(bez nazwy)",
     tagline: "twój zespół agentów AI",
   },
+  nav: {
+    groupWork: "Praca",
+    groupTeam: "Zespół",
+    pulpit: "Pulpit",
+    robota: "Daj robotę",
+    odbior: "Do odbioru",
+    dziennik: "Dziennik",
+    agents: "Wszyscy agenci",
+    hire: "Zatrudnij agenta",
+    monthSpend: (v: string) => `${v} w tym miesiącu`,
+  },
+  pages: {
+    pulpit: {
+      title: "Pulpit",
+      subtitle: "Co się dzieje w Twoim zespole — na żywo.",
+      awaiting: (n: number) =>
+        n === 1
+          ? "1 wynik czeka na Twoją decyzję"
+          : `${n} ${n < 5 ? "wyniki czekają" : "wyników czeka"} na Twoją decyzję`,
+      goto: "Przejdź",
+      cta: "Daj robotę",
+    },
+    robota: {
+      title: "Daj robotę",
+      subtitle:
+        "Napisz po ludzku — rozbijemy to na zadania i przydzielimy zespołowi.",
+      historyHeading: "Polecenia",
+      empty: "Jeszcze żadnych poleceń.",
+      seePlan: "Zobacz plan",
+      statuses: {
+        awaiting_approval: "plan do akceptacji",
+        approved: "w toku",
+        done: "wykonane ✓",
+        rejected: "odrzucone",
+      },
+    },
+    odbior: {
+      title: "Do odbioru",
+      subtitle: "Nic nie wychodzi na zewnątrz bez Twojej zgody.",
+    },
+    dziennik: {
+      title: "Dziennik",
+      subtitle: "Kto co zaczął, skończył i ile to kosztowało.",
+    },
+    agents: {
+      title: "Wszyscy agenci",
+      subtitle: "Twój zespół — statusy, budżety, role.",
+    },
+    agent: {
+      budgetRow: "Budżet miesięczny",
+      jobHeading: "Opis stanowiska",
+      onboardingHeading: "Z onboardingu",
+      workHeading: "Ostatnia praca",
+      workEmpty: "Jeszcze bez zadań.",
+      writeTo: (name: string) => `Napisz do: ${name}`,
+      engineLabel: "silnik",
+    },
+  },
   order: {
     heading: "Wydaj rozkaz zespołowi",
     placeholder:
@@ -29,7 +87,7 @@ export const pl = {
   },
   plan: {
     title: "Plan działania",
-    back: "← Wróć do pulpitu",
+    back: "← Daj robotę",
     orderLabel: "Rozkaz",
     approve: "Dawaj",
     requestChanges: "Zmień",

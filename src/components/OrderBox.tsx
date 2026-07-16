@@ -4,21 +4,20 @@ import { useActionState } from "react";
 import { submitOrder, type OrderFormState } from "@/app/actions";
 import { t } from "@/lib/i18n";
 
-export function OrderBox() {
+export function OrderBox({ initialText }: { initialText?: string }) {
   const [state, formAction, pending] = useActionState<OrderFormState, FormData>(
     submitOrder,
     {},
   );
 
   return (
-    <section className="rounded-2xl border border-line bg-panel p-4 sm:p-6">
-      <h2 className="font-display text-sm font-semibold text-ink">
-        {t.order.heading}
-      </h2>
-      <form action={formAction} className="mt-3 flex flex-col gap-3 sm:flex-row">
+    <section className="rounded-2xl border border-line bg-panel p-5">
+      <form action={formAction} className="flex flex-col gap-3 sm:flex-row">
         <textarea
           name="order"
           rows={2}
+          defaultValue={initialText}
+          autoFocus={!!initialText}
           placeholder={t.order.placeholder}
           className="min-h-[3.25rem] flex-1 resize-y rounded-xl border border-line bg-panel-2 px-4 py-3 text-ink placeholder:text-ink-muted/70 focus:border-accent focus:outline-none"
         />

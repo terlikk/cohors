@@ -3,26 +3,34 @@ import { t } from "@/lib/i18n";
 import { roleColor, statusColor, statusIsLive } from "@/lib/roles";
 import type { Agent } from "@/lib/types";
 
-export function Team({ agents }: { agents: Agent[] }) {
+export function Team({
+  agents,
+  showHeading = true,
+}: {
+  agents: Agent[];
+  showHeading?: boolean;
+}) {
   return (
     <section>
-      <div className="flex items-center justify-between">
-        <h2 className="font-display text-lg font-semibold text-ink">
-          {t.team.heading}
-        </h2>
-        <Link
-          href="/hire"
-          className="rounded-full bg-panel-2 px-4 py-2 font-display text-xs text-ink transition hover:border-accent/50"
-        >
-          + {t.team.hire}
-        </Link>
-      </div>
+      {showHeading && (
+        <div className="flex items-center justify-between">
+          <h2 className="font-display text-lg font-semibold text-ink">
+            {t.team.heading}
+          </h2>
+          <Link
+            href="/zatrudnij"
+            className="rounded-full bg-panel-2 px-4 py-2 font-display text-xs text-ink transition hover:brightness-95"
+          >
+            + {t.team.hire}
+          </Link>
+        </div>
+      )}
 
       {agents.length === 0 ? (
         <div className="mt-3 flex flex-col items-center gap-4 rounded-2xl border border-dashed border-line bg-panel px-4 py-10 text-center">
           <p className="max-w-sm text-sm text-ink-muted">{t.team.empty}</p>
           <Link
-            href="/hire"
+            href="/zatrudnij"
             className="rounded-full bg-accent px-6 py-3 font-display text-sm font-semibold text-white transition hover:brightness-110"
           >
             {t.team.hireFirst}
@@ -31,9 +39,10 @@ export function Team({ agents }: { agents: Agent[] }) {
       ) : (
         <div className="mt-3 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {agents.map((a) => (
-            <article
+            <Link
               key={a.id}
-              className="rounded-2xl border border-line bg-panel p-4"
+              href={`/agenci/${a.id}`}
+              className="rounded-2xl border border-line bg-panel p-4 transition hover:border-[#c9c9cf]"
             >
               <header className="flex items-center gap-3">
                 <div
@@ -86,7 +95,7 @@ export function Team({ agents }: { agents: Agent[] }) {
                   />
                 </div>
               </footer>
-            </article>
+            </Link>
           ))}
         </div>
       )}

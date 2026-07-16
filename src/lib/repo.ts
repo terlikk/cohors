@@ -472,3 +472,24 @@ export function monthTotalCostUsd(): number {
     .get(monthStart.toISOString()) as { total: number };
   return row.total;
 }
+
+export function listOrders(): Array<Order & { taskCount: number }> {
+  const rows = db
+    .prepare(
+      `SELECT o.*, COUNT(t.id) AS task_count
+       FROM orders o LEFT JOIN tasks t ON t.order_id = o.id
+       GROUP BY o.id ORDER BY o.created_at DESC LIMIT 50`,
+    )
+    .all() as Array<OrderRow & { task_count: number }>;
+  return rows.map((r) => ({ ...toOrder(r), taskCount: r.task_count }));
+}
+
+export function listAgentTasks(agentId: string, limit = 20): Task[] {
+  const rows = db
+    .prepare(
+      `SELECT * FROM tasks WHERE agent_id = ? AND status != 'proposed'
+       ORDER BY created_at DESC LIMIT ?`,
+    )
+    .all(agentId, limit) as TaskRow[];
+  return rows.map(toTask);
+}

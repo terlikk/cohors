@@ -1,7 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { retryTaskAction } from "@/app/actions";
-import { AutoRefresh } from "@/components/AutoRefresh";
 import { PlanActions } from "@/components/PlanActions";
 import { t } from "@/lib/i18n";
 import { getOrder, listAgents, listOrderTasks } from "@/lib/repo";
@@ -24,15 +23,15 @@ export default async function OrderPage({
   const taskNumber = new Map(tasks.map((task, i) => [task.id, i + 1]));
 
   return (
-    <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
-      {(order.status === "approved" || order.status === "awaiting_approval") && (
-        <AutoRefresh />
-      )}
+    <div className="flex w-full flex-col gap-5">
       <header>
-        <Link href="/" className="text-xs text-ink-muted hover:text-accent">
+        <Link
+          href="/robota"
+          className="text-xs text-ink-muted hover:text-accent"
+        >
           {t.plan.back}
         </Link>
-        <h1 className="mt-2 font-display text-2xl font-semibold text-ink">
+        <h1 className="mt-2 text-2xl font-bold tracking-tight text-ink">
           {t.plan.title}
         </h1>
         <p className="mt-1 font-mono text-xs text-ink-muted">

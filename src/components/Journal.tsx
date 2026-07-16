@@ -15,17 +15,21 @@ function formatTime(iso: string): string {
 export function Journal({
   events,
   agents,
+  showHeading = true,
 }: {
   events: JournalEvent[];
   agents: Agent[];
+  showHeading?: boolean;
 }) {
   const agentById = (id?: string) => agents.find((a) => a.id === id);
 
   return (
     <section>
-      <h2 className="font-display text-lg font-semibold text-ink">
-        {t.journal.heading}
-      </h2>
+      {showHeading && (
+        <h2 className="font-display text-lg font-semibold text-ink">
+          {t.journal.heading}
+        </h2>
+      )}
       {events.length === 0 ? (
         <p className="mt-3 rounded-2xl border border-line bg-panel px-4 py-5 text-sm text-ink-muted">
           {t.journal.empty}
