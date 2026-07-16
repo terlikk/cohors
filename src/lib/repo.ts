@@ -1,11 +1,16 @@
 import { db } from "@/lib/db";
+import type { PlannedTask } from "@/lib/planner";
 import type {
   Agent,
   AgentStatus,
   EngineKey,
   JournalEvent,
   JournalKind,
+  Order,
+  OrderStatus,
   RoleKey,
+  Task,
+  TaskStatus,
 } from "@/lib/types";
 
 interface AgentRow {
@@ -137,4 +142,150 @@ export function createAgent(input: {
   insert();
 
   return id;
+}
+
+interface OrderRow {
+  id: string;
+  text: string;
+  status: string;
+  planner: string;
+  created_at: string;
+}
+
+interface TaskRow {
+  id: string;
+  order_id: string;
+  agent_id: string;
+  title: string;
+  description: string;
+  depends_on: string;
+  status: string;
+  sort: number;
+  cost_usd: number | null;
+  created_at: string;
+}
+
+function toOrder(r: OrderRow): Order {
+  return {
+    id: r.id,
+    text: r.text,
+    status: r.status as OrderStatus,
+    planner: r.planner as Order["planner"],
+    createdAt: r.created_at,
+  };
+}
+
+function toTask(r: TaskRow): Task {
+  return {
+    id: r.id,
+    orderId: r.order_id,
+    agentId: r.agent_id,
+    title: r.title,
+    description: r.description,
+    dependsOn: JSON.parse(r.depends_on) as string[],
+    status: r.status as TaskStatus,
+    sort: r.sort,
+    costUsd: r.cost_usd ?? undefined,
+    createdAt: r.created_at,
+  };
+}
+
+export function createOrderWithPlan(input: {
+  text: string;
+  planner: Order["planner"];
+  tasks: PlannedTask[];
+}): string {
+  const orderId = crypto.randomUUID();
+  const now = new Date().toISOString();
+
+  const insert = db.transaction(() => {
+    db.prepare(
+      `INSERT INTO orders (id, text, status, planner, created_at)
+       VALUES (?, ?, 'awaiting_approval', ?, ?)`,
+    ).run(orderId, input.text, input.planner, now);
+    insertPlanTasks(orderId, input.tasks, now);
+  });
+  insert();
+  return orderId;
+}
+
+/** Replaces the proposed tasks of an order with a revised plan. */
+export function replaceOrderPlan(
+  orderId: string,
+  planner: Order["planner"],
+  tasks: PlannedTask[],
+): void {
+  const now = new Date().toISOString();
+  const replace = db.transaction(() => {
+    db.prepare(`DELETE FROM tasks WHERE order_id = ?`).run(orderId);
+    db.prepare(
+      `UPDATE orders SET status = 'awaiting_approval', planner = ? WHERE id = ?`,
+    ).run(planner, orderId);
+    insertPlanTasks(orderId, tasks, now);
+  });
+  replace();
+}
+
+function insertPlanTasks(
+  orderId: string,
+  tasks: PlannedTask[],
+  now: string,
+): void {
+  // Planned tasks reference each other by index; translate to real IDs.
+  const ids = tasks.map(() => crypto.randomUUID());
+  const stmt = db.prepare(
+    `INSERT INTO tasks (id, order_id, agent_id, title, description, depends_on, status, sort, created_at)
+     VALUES (?, ?, ?, ?, ?, ?, 'proposed', ?, ?)`,
+  );
+  tasks.forEach((task, i) => {
+    stmt.run(
+      ids[i],
+      orderId,
+      task.agentId,
+      task.title,
+      task.description,
+      JSON.stringify(task.dependsOn.map((d) => ids[d]).filter(Boolean)),
+      i,
+      now,
+    );
+  });
+}
+
+export function getOrder(id: string): Order | undefined {
+  const row = db.prepare(`SELECT * FROM orders WHERE id = ?`).get(id) as
+    | OrderRow
+    | undefined;
+  return row ? toOrder(row) : undefined;
+}
+
+export function listOrderTasks(orderId: string): Task[] {
+  const rows = db
+    .prepare(`SELECT * FROM tasks WHERE order_id = ? ORDER BY sort ASC`)
+    .all(orderId) as TaskRow[];
+  return rows.map(toTask);
+}
+
+export function listPendingOrders(): Array<Order & { taskCount: number }> {
+  const rows = db
+    .prepare(
+      `SELECT o.*, COUNT(t.id) AS task_count
+       FROM orders o LEFT JOIN tasks t ON t.order_id = o.id
+       WHERE o.status = 'awaiting_approval'
+       GROUP BY o.id ORDER BY o.created_at DESC`,
+    )
+    .all() as Array<OrderRow & { task_count: number }>;
+  return rows.map((r) => ({ ...toOrder(r), taskCount: r.task_count }));
+}
+
+/** Boss approved the plan: tasks with no pending dependencies become queued. */
+export function approveOrder(orderId: string): void {
+  const approve = db.transaction(() => {
+    db.prepare(`UPDATE orders SET status = 'approved' WHERE id = ?`).run(
+      orderId,
+    );
+    db.prepare(
+      `UPDATE tasks SET status = 'queued' WHERE order_id = ? AND status = 'proposed'`,
+    ).run(orderId);
+  });
+  approve();
 }

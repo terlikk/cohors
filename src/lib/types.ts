@@ -39,7 +39,44 @@ export interface Approval {
   createdAt: string;
 }
 
+export type OrderStatus = "awaiting_approval" | "approved" | "rejected";
+
+export type TaskStatus =
+  | "proposed"
+  | "queued"
+  | "running"
+  | "awaiting_approval"
+  | "done"
+  | "failed";
+
+export interface Order {
+  id: string;
+  text: string;
+  status: OrderStatus;
+  /** Which planner produced the current plan. */
+  planner: "llm" | "heuristic" | "direct";
+  createdAt: string;
+}
+
+export interface Task {
+  id: string;
+  orderId: string;
+  agentId: string;
+  title: string;
+  description: string;
+  /** IDs of tasks that must finish before this one starts. */
+  dependsOn: string[];
+  status: TaskStatus;
+  sort: number;
+  costUsd?: number;
+  createdAt: string;
+}
+
 export type JournalKind =
+  | "order_submitted"
+  | "plan_ready"
+  | "plan_approved"
+  | "plan_changes"
   | "task_started"
   | "task_finished"
   | "waiting_approval"

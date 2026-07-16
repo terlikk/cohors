@@ -3,7 +3,17 @@
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { t } from "@/lib/i18n";
-import { addJournalEvent, createAgent } from "@/lib/repo";
+import { planOrder } from "@/lib/planner";
+import {
+  addJournalEvent,
+  approveOrder,
+  createAgent,
+  createOrderWithPlan,
+  getOrder,
+  listAgents,
+  listOrderTasks,
+  replaceOrderPlan,
+} from "@/lib/repo";
 import type { EngineKey, RoleKey } from "@/lib/types";
 
 const ROLES: RoleKey[] = [
@@ -62,4 +72,91 @@ export async function hireAgent(
 
   revalidatePath("/");
   redirect("/");
+}
+
+export interface OrderFormState {
+  error?: string;
+}
+
+export async function submitOrder(
+  _prev: OrderFormState,
+  formData: FormData,
+): Promise<OrderFormState> {
+  const text = String(formData.get("order") ?? "").trim();
+  if (!text) return { error: t.order.errors.empty };
+
+  const agents = listAgents();
+  if (agents.length === 0) return { error: t.order.errors.noAgents };
+
+  const plan = await planOrder(text, agents);
+  const orderId = createOrderWithPlan({
+    text,
+    planner: plan.planner,
+    tasks: plan.tasks,
+  });
+
+  addJournalEvent({ kind: "order_submitted", text: t.journalTexts.orderSubmitted(text) });
+  const names = [
+    ...new Set(
+      plan.tasks
+        .map((task) => agents.find((a) => a.id === task.agentId)?.name)
+        .filter((n): n is string => !!n),
+    ),
+  ];
+  addJournalEvent({
+    kind: "plan_ready",
+    text: t.journalTexts.planReady(plan.tasks.length, names),
+    costUsd: plan.costUsd > 0 ? plan.costUsd : undefined,
+  });
+
+  revalidatePath("/");
+  redirect(`/orders/${orderId}`);
+}
+
+export async function approvePlan(formData: FormData): Promise<void> {
+  const orderId = String(formData.get("orderId") ?? "");
+  const order = getOrder(orderId);
+  if (!order || order.status !== "awaiting_approval") return;
+
+  approveOrder(orderId);
+  addJournalEvent({ kind: "plan_approved", text: t.journalTexts.planApproved });
+  revalidatePath("/");
+  revalidatePath(`/orders/${orderId}`);
+}
+
+export interface ChangesFormState {
+  error?: string;
+}
+
+export async function requestPlanChanges(
+  _prev: ChangesFormState,
+  formData: FormData,
+): Promise<ChangesFormState> {
+  const orderId = String(formData.get("orderId") ?? "");
+  const comment = String(formData.get("comment") ?? "").trim();
+  if (!comment) return { error: t.plan.changesPlaceholder };
+
+  const order = getOrder(orderId);
+  if (!order || order.status !== "awaiting_approval") return {};
+
+  const agents = listAgents();
+  const previousPlan = listOrderTasks(orderId)
+    .map(
+      (task, i) =>
+        `${i + 1}. ${task.title} → ${agents.find((a) => a.id === task.agentId)?.name ?? "?"}`,
+    )
+    .join("\n");
+
+  const plan = await planOrder(order.text, agents, { previousPlan, comment });
+  replaceOrderPlan(orderId, plan.planner, plan.tasks);
+
+  addJournalEvent({
+    kind: "plan_changes",
+    text: t.journalTexts.planChanges(comment),
+    costUsd: plan.costUsd > 0 ? plan.costUsd : undefined,
+  });
+
+  revalidatePath("/");
+  revalidatePath(`/orders/${orderId}`);
+  return {};
 }

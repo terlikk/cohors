@@ -43,6 +43,27 @@ function open(): Database.Database {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS orders (
+      id TEXT PRIMARY KEY,
+      text TEXT NOT NULL,
+      status TEXT NOT NULL DEFAULT 'awaiting_approval',
+      planner TEXT NOT NULL DEFAULT 'heuristic',
+      created_at TEXT NOT NULL
+    );
+
+    CREATE TABLE IF NOT EXISTS tasks (
+      id TEXT PRIMARY KEY,
+      order_id TEXT NOT NULL REFERENCES orders(id) ON DELETE CASCADE,
+      agent_id TEXT NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+      title TEXT NOT NULL,
+      description TEXT NOT NULL,
+      depends_on TEXT NOT NULL DEFAULT '[]',
+      status TEXT NOT NULL DEFAULT 'proposed',
+      sort INTEGER NOT NULL DEFAULT 0,
+      cost_usd REAL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS journal (
       id TEXT PRIMARY KEY,
       at TEXT NOT NULL,

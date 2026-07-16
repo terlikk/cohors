@@ -1,15 +1,19 @@
+import Link from "next/link";
 import { t } from "@/lib/i18n";
 import { roleColor } from "@/lib/roles";
-import type { Agent, Approval } from "@/lib/types";
+import type { Agent, Approval, Order } from "@/lib/types";
 
 export function Approvals({
   approvals,
+  pendingOrders,
   agents,
 }: {
   approvals: Approval[];
+  pendingOrders: Array<Order & { taskCount: number }>;
   agents: Agent[];
 }) {
   const agentById = (id: string) => agents.find((a) => a.id === id);
+  const total = approvals.length + pendingOrders.length;
 
   return (
     <section>
@@ -17,18 +21,48 @@ export function Approvals({
         <h2 className="font-display text-lg font-semibold text-ink">
           {t.approvals.heading}
         </h2>
-        {approvals.length > 0 && (
+        {total > 0 && (
           <span className="rounded-full border border-accent/40 bg-accent/10 px-2 py-0.5 font-mono text-xs text-accent">
-            {approvals.length}
+            {total}
           </span>
         )}
       </div>
 
-      {approvals.length === 0 ? (
+      {pendingOrders.length > 0 && (
+        <div className="mt-3 grid gap-3 md:grid-cols-2">
+          {pendingOrders.map((order) => (
+            <Link
+              key={order.id}
+              href={`/orders/${order.id}`}
+              className="flex items-center gap-3 rounded-2xl border border-accent/40 bg-panel p-4 transition hover:border-accent sm:p-5"
+            >
+              <span
+                className="status-dot status-dot--live shrink-0"
+                style={{ color: "var(--color-accent)" }}
+              />
+              <span className="min-w-0 flex-1">
+                <span className="block font-semibold text-ink">
+                  {t.plan.awaitingCardTitle}
+                </span>
+                <span className="mt-0.5 block truncate text-sm text-ink-muted">
+                  „{order.text}” · {t.plan.taskCount(order.taskCount)}
+                </span>
+              </span>
+              <span className="shrink-0 rounded-xl bg-gradient-to-b from-accent-2 to-accent px-4 py-2 font-display text-xs font-semibold text-[#241900]">
+                {t.plan.awaitingCardCta}
+              </span>
+            </Link>
+          ))}
+        </div>
+      )}
+
+      {total === 0 && (
         <p className="mt-3 rounded-2xl border border-line bg-panel px-4 py-5 text-sm text-ink-muted">
           {t.approvals.empty}
         </p>
-      ) : (
+      )}
+
+      {approvals.length > 0 && (
         <div className="mt-3 grid gap-3 md:grid-cols-2">
           {approvals.map((ap) => {
             const agent = agentById(ap.agentId);

@@ -4,13 +4,14 @@ import { OrderBox } from "@/components/OrderBox";
 import { Team } from "@/components/Team";
 import { isDemo } from "@/lib/db";
 import { t } from "@/lib/i18n";
-import { listAgents, listJournal } from "@/lib/repo";
+import { listAgents, listJournal, listPendingOrders } from "@/lib/repo";
 
 export const dynamic = "force-dynamic";
 
 export default async function Dashboard() {
   const agents = listAgents();
   const journal = listJournal();
+  const pendingOrders = listPendingOrders();
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
@@ -31,7 +32,7 @@ export default async function Dashboard() {
       </p>
 
       <OrderBox />
-      <Approvals approvals={[]} agents={agents} />
+      <Approvals approvals={[]} pendingOrders={pendingOrders} agents={agents} />
       <Team agents={agents} />
       <Journal events={journal} agents={agents} />
 

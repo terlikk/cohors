@@ -20,8 +20,55 @@ export const pl = {
     placeholder:
       "Np. „W czwartek premiera nowej wersji apki — ogarnijcie promocję i sprawdźcie technikalia”",
     submit: "Wydaj rozkaz",
-    hint: "Rozkaz zostanie rozbity na zadania i przydzielony właściwym agentom. Zobaczysz plan do akceptacji, zanim ktokolwiek zacznie.",
-    comingSoon: "Rozkazy ruszą w etapie 3 — najpierw zatrudnij zespół.",
+    submitting: "Rozdzielam zadania…",
+    hint: "Rozkaz zostanie rozbity na zadania i przydzielony właściwym agentom. Zobaczysz plan do akceptacji, zanim ktokolwiek zacznie. Możesz też pisać wprost do agenta: „Bartek, napraw błąd logowania”.",
+    errors: {
+      empty: "Napisz, co zespół ma zrobić.",
+      noAgents: "Najpierw zatrudnij przynajmniej jednego agenta.",
+    },
+  },
+  plan: {
+    title: "Plan działania",
+    back: "← Wróć do pulpitu",
+    orderLabel: "Rozkaz",
+    approve: "Dawaj",
+    requestChanges: "Zmień",
+    changesPlaceholder:
+      "Napisz, co zmienić — np. „newsletter niepotrzebny, dodaj posta na LinkedIn”",
+    changesSubmit: "Popraw plan",
+    changesSubmitting: "Poprawiam plan…",
+    approvedNote:
+      "Plan zatwierdzony — zadania trafiły do kolejek agentów. Wykonanie ruszy w etapie 4.",
+    rejectedNote: "Plan odrzucony.",
+    dependsOn: "po:",
+    taskCount: (n: number) =>
+      `${n} ${n === 1 ? "zadanie" : n < 5 ? "zadania" : "zadań"}`,
+    plannerBadge: {
+      llm: "plan ułożony przez AI",
+      heuristic: "plan wstępny (bez AI — podłącz klucz, by planować mądrzej)",
+      direct: "polecenie bezpośrednie",
+    },
+    awaitingCardTitle: "Plan czeka na Twoją akceptację",
+    awaitingCardCta: "Zobacz plan",
+    taskStatuses: {
+      proposed: "w planie",
+      queued: "w kolejce",
+      running: "w toku",
+      awaiting_approval: "do odbioru",
+      done: "zrobione",
+      failed: "nieudane",
+    },
+  },
+  planner: {
+    heuristicTaskTitle: {
+      marketing: "Ogarnij promocję",
+      developer: "Sprawdź technikalia",
+      research: "Przygotuj analizę",
+      copywriting: "Napisz teksty",
+      support: "Przygotuj odpowiedzi dla klientów",
+    },
+    heuristicTaskDescription: (order: string) =>
+      `Zajmij się swoją częścią rozkazu szefa: „${order}”. Działaj w ramach swojej roli i opisu stanowiska.`,
   },
   approvals: {
     heading: "Do odbioru",
@@ -143,6 +190,10 @@ export const pl = {
     idle: "wolny",
   } satisfies Record<AgentStatus, string>,
   journalKinds: {
+    order_submitted: "rozkaz",
+    plan_ready: "plan gotowy",
+    plan_approved: "plan zatwierdzony",
+    plan_changes: "uwagi do planu",
     task_started: "start zadania",
     task_finished: "koniec zadania",
     waiting_approval: "do odbioru",
@@ -152,6 +203,13 @@ export const pl = {
   } satisfies Record<JournalKind, string>,
   journalTexts: {
     hired: (name: string, role: string) => `${name} (${role}) dołącza do zespołu`,
+    orderSubmitted: (text: string) =>
+      `Szef wydał rozkaz: „${text.length > 80 ? `${text.slice(0, 77)}…` : text}”`,
+    planReady: (n: number, agentNames: string[]) =>
+      `Plan gotowy: ${n} ${n === 1 ? "zadanie" : n < 5 ? "zadania" : "zadań"} dla: ${agentNames.join(", ")}`,
+    planApproved: "Szef zatwierdził plan — zadania trafiły do kolejek",
+    planChanges: (comment: string) =>
+      `Szef odesłał plan z uwagami: „${comment.length > 60 ? `${comment.slice(0, 57)}…` : comment}”`,
   },
   demoBanner:
     "Wersja demo na przykładowych danych — zmiany nie zapisują się na stałe.",
