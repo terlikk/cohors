@@ -13,7 +13,7 @@ export default function Landing() {
         <div className="grid items-center gap-10 md:grid-cols-2">
           <div>
             <span className="label-mono inline-flex items-center gap-2 rounded-full border border-hive-border bg-hive-panel px-3 py-1">
-              open source · MIT
+              open source · MIT · działa u Ciebie
             </span>
             <h1 className="mt-5 text-4xl leading-[1.05] sm:text-5xl">
               Zatrudnij <span className="text-honey-light">rój</span> agentów AI.
@@ -27,18 +27,16 @@ export default function Landing() {
               Reszta dzieje się sama.
             </p>
             <div className="mt-7 flex flex-wrap gap-3">
-              <Link href="/hive" className="btn-honey">
-                Wejdź do ula →
-              </Link>
-              <a
-                href="https://github.com/terlikk/printflow"
-                className="btn-ghost"
-              >
-                Zobacz kod
+              <a href="#pobierz" className="btn-honey">
+                Pobierz i uruchom →
               </a>
+              <Link href="/hive" className="btn-ghost">
+                Zobacz podgląd
+              </Link>
             </div>
             <p className="label-mono mt-6">
-              npm install &nbsp;·&nbsp; npm run dev &nbsp;·&nbsp; gotowe
+              pobierasz przez terminal &nbsp;·&nbsp; ul chodzi na Twoim
+              localhost &nbsp;·&nbsp; dane zostają u Ciebie
             </p>
           </div>
 
@@ -155,23 +153,30 @@ export default function Landing() {
         </div>
       </section>
 
-      {/* CTA */}
-      <section className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
+      {/* CTA — download & run locally */}
+      <section id="pobierz" className="mx-auto max-w-5xl px-4 py-12 sm:px-6">
         <div className="panel-raised flex flex-col items-center gap-5 p-8 text-center sm:p-12">
           <ApiaryMark size={40} />
           <h2 className="max-w-lg text-2xl sm:text-3xl">
-            Uruchom własną pasiekę w minutę
+            Pobierz i postaw własny ul na swoim komputerze
           </h2>
           <p className="max-w-md text-wax-dim">
-            Bez baz do stawiania, bez serwerów. Sklonuj, odpal i zatrudnij
-            pierwszą robotnicę.
+            Apiary chodzi lokalnie, u Ciebie — bez baz do stawiania, bez
+            serwerów. Każdy ma swój własny ul i swój dashboard, a dane nie
+            wychodzą na zewnątrz. Trzy komendy w terminalu i gotowe.
           </p>
           <pre className="label-mono overflow-x-auto rounded-xl border border-hive-border bg-hive-bg px-5 py-3 text-left text-wax">
-            <code>{`git clone …\nnpm install\nnpm run dev`}</code>
+            <code>{`git clone https://github.com/terlikk/printflow apiary\ncd apiary\nnpm install\nnpm run dev`}</code>
           </pre>
-          <Link href="/hive" className="btn-honey">
-            Wejdź do ula →
-          </Link>
+          <p className="label-mono">
+            → otwórz http://localhost:3000 i zatrudnij pierwszą robotnicę
+          </p>
+          <a
+            href="https://github.com/terlikk/printflow"
+            className="btn-honey"
+          >
+            Zobacz kod na GitHub →
+          </a>
         </div>
       </section>
 
@@ -203,9 +208,9 @@ function NavBar() {
           <a href="#role" className="hidden hover:text-wax sm:inline">
             Role
           </a>
-          <Link href="/hive" className="btn-honey px-3.5 py-2 text-sm">
-            Wejdź do ula
-          </Link>
+          <a href="#pobierz" className="btn-honey px-3.5 py-2 text-sm">
+            Pobierz
+          </a>
         </div>
       </div>
     </nav>
