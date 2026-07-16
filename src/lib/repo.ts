@@ -3,6 +3,7 @@ import type { PlannedTask } from "@/lib/planner";
 import type {
   Agent,
   AgentStatus,
+  ChatMessage,
   EngineKey,
   JournalEvent,
   JournalKind,
@@ -492,4 +493,52 @@ export function listAgentTasks(agentId: string, limit = 20): Task[] {
     )
     .all(agentId, limit) as TaskRow[];
   return rows.map(toTask);
+}
+
+interface MessageRow {
+  id: string;
+  agent_id: string;
+  sender: string;
+  text: string;
+  created_at: string;
+}
+
+export function listMessages(agentId: string, limit = 50): ChatMessage[] {
+  const rows = db
+    .prepare(
+      `SELECT * FROM (
+         SELECT m.*, m.rowid AS rid FROM messages m
+         WHERE m.agent_id = ? ORDER BY m.rowid DESC LIMIT ?
+       ) ORDER BY rid ASC`,
+    )
+    .all(agentId, limit) as MessageRow[];
+  return rows.map((r) => ({
+    id: r.id,
+    agentId: r.agent_id,
+    from: r.sender as ChatMessage["from"],
+    text: r.text,
+    createdAt: r.created_at,
+  }));
+}
+
+export function addMessage(
+  agentId: string,
+  from: ChatMessage["from"],
+  text: string,
+): void {
+  db.prepare(
+    `INSERT INTO messages (id, agent_id, sender, text, created_at)
+     VALUES (?, ?, ?, ?, ?)`,
+  ).run(crypto.randomUUID(), agentId, from, text, new Date().toISOString());
+}
+
+/** Agents whose newest chat message is from the boss and awaits a reply. */
+export function listAgentsAwaitingChatReply(): string[] {
+  const rows = db
+    .prepare(
+      `SELECT agent_id, sender FROM messages m
+       WHERE rowid = (SELECT MAX(rowid) FROM messages WHERE agent_id = m.agent_id)`,
+    )
+    .all() as Array<{ agent_id: string; sender: string }>;
+  return rows.filter((r) => r.sender === "boss").map((r) => r.agent_id);
 }

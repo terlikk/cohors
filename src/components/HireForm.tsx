@@ -7,6 +7,7 @@ import { roleColor } from "@/lib/roles";
 import type { EngineKey, RoleKey } from "@/lib/types";
 
 const ROLE_OPTIONS: RoleKey[] = [
+  "manager",
   "marketing",
   "developer",
   "research",

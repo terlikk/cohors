@@ -2,6 +2,7 @@ import type { AgentStatus, RoleKey } from "@/lib/types";
 
 /** Theme colors for each role (see globals.css @theme). */
 export const roleColor: Record<RoleKey, string> = {
+  manager: "#5856d6",
   marketing: "var(--color-role-marketing)",
   developer: "var(--color-role-developer)",
   research: "var(--color-role-research)",

@@ -67,6 +67,14 @@ function open(): Database.Database {
       created_at TEXT NOT NULL
     );
 
+    CREATE TABLE IF NOT EXISTS messages (
+      id TEXT PRIMARY KEY,
+      agent_id TEXT NOT NULL REFERENCES agents(id) ON DELETE CASCADE,
+      sender TEXT NOT NULL,
+      text TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
+
     CREATE TABLE IF NOT EXISTS journal (
       id TEXT PRIMARY KEY,
       at TEXT NOT NULL,

@@ -1,8 +1,14 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { AgentChat } from "@/components/AgentChat";
 import { PageHead } from "@/components/PageHead";
 import { t } from "@/lib/i18n";
-import { getAgent, getAgentOnboarding, listAgentTasks } from "@/lib/repo";
+import {
+  getAgent,
+  getAgentOnboarding,
+  listAgentTasks,
+  listMessages,
+} from "@/lib/repo";
 import { roleColor, statusColor, statusIsLive } from "@/lib/roles";
 
 export const dynamic = "force-dynamic";
@@ -26,6 +32,7 @@ export default async function AgentPage({
 
   const tasks = listAgentTasks(id);
   const onboarding = getAgentOnboarding(id);
+  const messages = listMessages(id);
   const roleLabel = agent.customRoleLabel ?? t.roles[agent.role];
 
   return (
@@ -54,6 +61,13 @@ export default async function AgentPage({
           {t.statuses[agent.status]}
         </span>
       </p>
+
+      <AgentChat
+        agentId={agent.id}
+        agentName={agent.name}
+        messages={messages}
+        isManager={agent.role === "manager"}
+      />
 
       <div className="flex items-center rounded-2xl border border-line bg-panel px-5 py-3.5 text-sm">
         <span className="text-ink">{t.pages.agent.budgetRow}</span>

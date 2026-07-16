@@ -1,4 +1,5 @@
 export type RoleKey =
+  | "manager"
   | "marketing"
   | "developer"
   | "research"
@@ -78,7 +79,16 @@ export interface Task {
   createdAt: string;
 }
 
+export interface ChatMessage {
+  id: string;
+  agentId: string;
+  from: "boss" | "agent";
+  text: string;
+  createdAt: string;
+}
+
 export type JournalKind =
+  | "chat"
   | "order_submitted"
   | "plan_ready"
   | "plan_approved"

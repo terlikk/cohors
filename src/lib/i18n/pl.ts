@@ -206,6 +206,7 @@ export const pl = {
   engineHttpUrlLabel: "Adres URL Twojego agenta",
   engineHttpUrlPlaceholder: "https://twoj-agent.example.com/run",
   roles: {
+    manager: "Szef zespołu",
     marketing: "Marketing",
     developer: "Programista",
     research: "Research",
@@ -214,6 +215,7 @@ export const pl = {
     custom: "Własna rola",
   } satisfies Record<RoleKey, string>,
   roleDescriptions: {
+    manager: "przyjmuje cele, zatrudnia agentów i kieruje zespołem",
     marketing: "kampanie, social media, promocja",
     developer: "kod, testy, poprawki, wdrożenia",
     research: "analizy, konkurencja, trendy",
@@ -222,6 +224,12 @@ export const pl = {
     custom: "opisz stanowisko po swojemu",
   } satisfies Record<RoleKey, string>,
   onboardingQuestions: {
+    manager: [
+      "Czym zajmuje się firma i co sprzedaje?",
+      "Jaki jest najważniejszy cel na najbliższy miesiąc?",
+      "Jakim miesięcznym budżetem na zespół dysponuję?",
+      "Czego absolutnie nie wolno robić bez Twojej zgody?",
+    ],
     marketing: [
       "W jakiej branży działa firma i co dokładnie sprzedaje?",
       "Kto jest Waszym klientem? Do kogo mówimy?",
@@ -260,6 +268,7 @@ export const pl = {
     idle: "wolny",
   } satisfies Record<AgentStatus, string>,
   journalKinds: {
+    chat: "czat",
     order_submitted: "rozkaz",
     plan_ready: "plan gotowy",
     plan_approved: "plan zatwierdzony",
@@ -293,6 +302,11 @@ export const pl = {
       `Szef zatwierdził: „${title}” (${agent})`,
     taskChanges: (agent: string, title: string, comment: string) =>
       `Szef odesłał „${title}” do ${agent} z uwagami: „${comment.length > 50 ? `${comment.slice(0, 47)}…` : comment}”`,
+    chatCost: (agent: string) => `${agent} odpowiada na czacie`,
+    managerHired: (manager: string, hired: string, role: string) =>
+      `${manager} zatrudnia: ${hired} (${role})`,
+    managerPlanned: (manager: string, n: number) =>
+      `${manager} przygotował plan: ${n} ${n === 1 ? "zadanie" : n < 5 ? "zadania" : "zadań"} — czeka na Twoją akceptację`,
     budgetStopped: (agent: string, budget: number) =>
       `${agent} zatrzymana — wyczerpany miesięczny budżet $${budget.toFixed(0)}`,
     orderDone: (text: string, cost: number) =>
@@ -300,6 +314,16 @@ export const pl = {
   },
   stats: {
     monthSpend: "wydatki w tym miesiącu",
+  },
+  chat: {
+    heading: "Czat",
+    placeholder: "Napisz do agenta — zapytaj o raport, doprecyzuj zadanie…",
+    send: "Wyślij",
+    empty: "Jeszcze żadnych wiadomości. Napisz pierwszy.",
+    you: "Ty",
+    thinking: "odpisuje…",
+    managerHint:
+      "To szef zespołu: opisz mu cel (np. „wygeneruj 10 000 zł sprzedaży w miesiąc”), a sam zatrudni agentów i przygotuje plan do Twojej akceptacji.",
   },
   demoBanner:
     "Wersja demo na przykładowych danych — zmiany nie zapisują się na stałe.",

@@ -6,6 +6,7 @@ import { t } from "@/lib/i18n";
 import { planOrder } from "@/lib/planner";
 import {
   addJournalEvent,
+  addMessage,
   approveOrder,
   approveTask,
   createAgent,
@@ -23,6 +24,7 @@ import {
 import type { EngineKey, RoleKey } from "@/lib/types";
 
 const ROLES: RoleKey[] = [
+  "manager",
   "marketing",
   "developer",
   "research",
@@ -227,4 +229,12 @@ export async function requestTaskChangesAction(
   });
   revalidatePath("/");
   return {};
+}
+
+export async function sendChatMessage(formData: FormData): Promise<void> {
+  const agentId = String(formData.get("agentId") ?? "");
+  const text = String(formData.get("text") ?? "").trim();
+  if (!text || !getAgent(agentId)) return;
+  addMessage(agentId, "boss", text);
+  revalidatePath(`/agenci/${agentId}`);
 }
