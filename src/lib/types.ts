@@ -101,7 +101,8 @@ export type JournalKind =
   | "waiting_approval"
   | "approved"
   | "changes_requested"
-  | "hired";
+  | "hired"
+  | "fired";
 
 export interface JournalEvent {
   id: string;

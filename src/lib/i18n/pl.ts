@@ -64,6 +64,25 @@ export const pl = {
       subtitle: "Twój zespół — statusy, budżety, role.",
     },
     agent: {
+      tabs: {
+        status: "Status",
+        czat: "Czat",
+        profil: "Profil",
+        opcje: "Opcje",
+      },
+      nowHeading: "Co teraz robi",
+      nowIdle: "Nic w tej chwili — wolny i czeka na zadania.",
+      nowSince: "w toku",
+      queueHeading: "W kolejce",
+      queueEmpty: "Kolejka pusta.",
+      awaitingNote: "oddane, czeka na Twój odbiór",
+      optionsBudget: "Miesięczny budżet (USD)",
+      optionsEngine: "Silnik (mózg agenta)",
+      optionsSave: "Zapisz zmiany",
+      optionsSaved: "Zapisano.",
+      fire: "Zwolnij agenta",
+      fireNote:
+        "Usuwa agenta razem z jego zadaniami i czatem. Tej operacji nie można cofnąć.",
       budgetRow: "Budżet miesięczny",
       jobHeading: "Opis stanowiska",
       onboardingHeading: "Z onboardingu",
@@ -274,6 +293,7 @@ export const pl = {
     plan_approved: "plan zatwierdzony",
     plan_changes: "uwagi do planu",
     order_done: "rozkaz wykonany",
+    fired: "zwolnienie",
     task_started: "start zadania",
     task_finished: "koniec zadania",
     task_failed: "błąd zadania",
@@ -285,6 +305,7 @@ export const pl = {
   } satisfies Record<JournalKind, string>,
   journalTexts: {
     hired: (name: string, role: string) => `${name} (${role}) dołącza do zespołu`,
+    fired: (name: string, role: string) => `${name} (${role}) odchodzi z zespołu`,
     orderSubmitted: (text: string) =>
       `Szef wydał rozkaz: „${text.length > 80 ? `${text.slice(0, 77)}…` : text}”`,
     planReady: (n: number, agentNames: string[]) =>

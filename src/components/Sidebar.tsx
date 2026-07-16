@@ -112,7 +112,7 @@ export function Sidebar({
               key={a.id}
               href={`/agenci/${a.id}`}
               label={`${a.name} · ${a.roleLabel}`}
-              active={pathname === `/agenci/${a.id}`}
+              active={pathname.startsWith(`/agenci/${a.id}`)}
               dotColor={statusColor[a.status]}
             />
           ))}

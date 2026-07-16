@@ -14,11 +14,13 @@ function open(): Database.Database {
   let db: Database.Database;
   if (IS_DEMO) {
     db = new Database(":memory:");
+    db.pragma("foreign_keys = ON");
   } else {
     const dir = path.join(process.cwd(), "data");
     fs.mkdirSync(dir, { recursive: true });
     db = new Database(path.join(dir, "app.db"));
     db.pragma("journal_mode = WAL");
+    db.pragma("foreign_keys = ON");
   }
 
   db.exec(`

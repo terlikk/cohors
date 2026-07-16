@@ -542,3 +542,26 @@ export function listAgentsAwaitingChatReply(): string[] {
     .all() as Array<{ agent_id: string; sender: string }>;
   return rows.filter((r) => r.sender === "boss").map((r) => r.agent_id);
 }
+
+export function updateAgentSettings(
+  id: string,
+  input: {
+    monthBudgetUsd: number;
+    engine: EngineKey;
+    engineConfig?: Agent["engineConfig"];
+  },
+): void {
+  db.prepare(
+    `UPDATE agents SET month_budget_usd = ?, engine = ?, engine_config = ? WHERE id = ?`,
+  ).run(
+    input.monthBudgetUsd,
+    input.engine,
+    input.engineConfig ? JSON.stringify(input.engineConfig) : null,
+    id,
+  );
+}
+
+/** Removes the agent together with its tasks, chat, and onboarding answers. */
+export function deleteAgent(id: string): void {
+  db.prepare(`DELETE FROM agents WHERE id = ?`).run(id);
+}

@@ -11,6 +11,7 @@ import {
   approveTask,
   createAgent,
   createOrderWithPlan,
+  deleteAgent,
   getAgent,
   getOrder,
   getTask,
@@ -20,6 +21,7 @@ import {
   replaceOrderPlan,
   requestTaskChanges,
   setTaskStatus,
+  updateAgentSettings,
 } from "@/lib/repo";
 import type { EngineKey, RoleKey } from "@/lib/types";
 
@@ -237,4 +239,49 @@ export async function sendChatMessage(formData: FormData): Promise<void> {
   if (!text || !getAgent(agentId)) return;
   addMessage(agentId, "boss", text);
   revalidatePath(`/agenci/${agentId}`);
+}
+
+export interface AgentSettingsState {
+  saved?: boolean;
+}
+
+export async function updateAgentSettingsAction(
+  _prev: AgentSettingsState,
+  formData: FormData,
+): Promise<AgentSettingsState> {
+  const agentId = String(formData.get("agentId") ?? "");
+  const agent = getAgent(agentId);
+  if (!agent) return {};
+
+  const budget = Number(formData.get("budget") ?? agent.monthBudgetUsd);
+  const engine = String(formData.get("engine") ?? agent.engine) as EngineKey;
+  const engineUrl = String(formData.get("engineUrl") ?? "").trim();
+
+  updateAgentSettings(agentId, {
+    monthBudgetUsd:
+      Number.isFinite(budget) && budget > 0 ? budget : agent.monthBudgetUsd,
+    engine: ENGINES.includes(engine) ? engine : agent.engine,
+    engineConfig:
+      engine === "http" && engineUrl ? { url: engineUrl } : agent.engineConfig,
+  });
+
+  revalidatePath(`/agenci/${agentId}`);
+  return { saved: true };
+}
+
+export async function fireAgentAction(formData: FormData): Promise<void> {
+  const agentId = String(formData.get("agentId") ?? "");
+  const agent = getAgent(agentId);
+  if (!agent) return;
+
+  deleteAgent(agentId);
+  addJournalEvent({
+    kind: "fired",
+    text: t.journalTexts.fired(
+      agent.name,
+      agent.customRoleLabel ?? t.roles[agent.role],
+    ),
+  });
+  revalidatePath("/");
+  redirect("/agenci");
 }
