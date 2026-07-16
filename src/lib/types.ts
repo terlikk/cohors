@@ -41,7 +41,7 @@ export interface Approval {
   createdAt: string;
 }
 
-export type OrderStatus = "awaiting_approval" | "approved" | "rejected";
+export type OrderStatus = "awaiting_approval" | "approved" | "done" | "rejected";
 
 export type TaskStatus =
   | "proposed"
@@ -83,6 +83,7 @@ export type JournalKind =
   | "plan_ready"
   | "plan_approved"
   | "plan_changes"
+  | "order_done"
   | "task_started"
   | "task_finished"
   | "task_failed"

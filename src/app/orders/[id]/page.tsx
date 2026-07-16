@@ -1,5 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { retryTaskAction } from "@/app/actions";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { PlanActions } from "@/components/PlanActions";
 import { t } from "@/lib/i18n";
 import { getOrder, listAgents, listOrderTasks } from "@/lib/repo";
@@ -23,6 +25,9 @@ export default async function OrderPage({
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-2xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+      {(order.status === "approved" || order.status === "awaiting_approval") && (
+        <AutoRefresh />
+      )}
       <header>
         <Link href="/" className="text-xs text-ink-muted hover:text-accent">
           {t.plan.back}
@@ -86,6 +91,17 @@ export default async function OrderPage({
                         {t.plan.taskStatuses[task.status]}
                       </span>
                     )}
+                    {task.status === "failed" && (
+                      <form action={retryTaskAction}>
+                        <input type="hidden" name="taskId" value={task.id} />
+                        <button
+                          type="submit"
+                          className="rounded-full border border-role-marketing/50 px-2.5 py-1 font-mono text-xs text-role-marketing transition hover:bg-role-marketing/10"
+                        >
+                          {t.plan.retryTask}
+                        </button>
+                      </form>
+                    )}
                   </div>
                 </div>
               </div>
@@ -98,7 +114,11 @@ export default async function OrderPage({
         <PlanActions orderId={order.id} />
       ) : (
         <p className="rounded-2xl border border-line bg-panel px-4 py-4 text-sm text-ink-muted">
-          {order.status === "approved" ? t.plan.approvedNote : t.plan.rejectedNote}
+          {order.status === "approved"
+            ? t.plan.approvedNote
+            : order.status === "done"
+              ? t.plan.doneNote
+              : t.plan.rejectedNote}
         </p>
       )}
     </div>

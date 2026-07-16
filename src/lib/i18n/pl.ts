@@ -38,8 +38,10 @@ export const pl = {
     changesSubmit: "Popraw plan",
     changesSubmitting: "Poprawiam plan…",
     approvedNote:
-      "Plan zatwierdzony — zadania trafiły do kolejek agentów. Wykonanie ruszy w etapie 4.",
+      "Plan zatwierdzony — agenci pracują. Wyniki znajdziesz na pulpicie w sekcji „Do odbioru”.",
+    doneNote: "Rozkaz wykonany w całości. ✔",
     rejectedNote: "Plan odrzucony.",
+    retryTask: "Spróbuj ponownie",
     dependsOn: "po:",
     taskCount: (n: number) =>
       `${n} ${n === 1 ? "zadanie" : n < 5 ? "zadania" : "zadań"}`,
@@ -204,6 +206,7 @@ export const pl = {
     plan_ready: "plan gotowy",
     plan_approved: "plan zatwierdzony",
     plan_changes: "uwagi do planu",
+    order_done: "rozkaz wykonany",
     task_started: "start zadania",
     task_finished: "koniec zadania",
     task_failed: "błąd zadania",
@@ -234,6 +237,11 @@ export const pl = {
       `Szef odesłał „${title}” do ${agent} z uwagami: „${comment.length > 50 ? `${comment.slice(0, 47)}…` : comment}”`,
     budgetStopped: (agent: string, budget: number) =>
       `${agent} zatrzymana — wyczerpany miesięczny budżet $${budget.toFixed(0)}`,
+    orderDone: (text: string, cost: number) =>
+      `Rozkaz wykonany w całości: „${text.length > 60 ? `${text.slice(0, 57)}…` : text}” (koszt $${cost.toFixed(2)})`,
+  },
+  stats: {
+    monthSpend: "wydatki w tym miesiącu",
   },
   demoBanner:
     "Wersja demo na przykładowych danych — zmiany nie zapisują się na stałe.",

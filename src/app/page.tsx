@@ -1,4 +1,5 @@
 import { Approvals } from "@/components/Approvals";
+import { AutoRefresh } from "@/components/AutoRefresh";
 import { Journal } from "@/components/Journal";
 import { OrderBox } from "@/components/OrderBox";
 import { Team } from "@/components/Team";
@@ -9,6 +10,7 @@ import {
   listAwaitingTasks,
   listJournal,
   listPendingOrders,
+  monthTotalCostUsd,
 } from "@/lib/repo";
 
 export const dynamic = "force-dynamic";
@@ -18,9 +20,11 @@ export default async function Dashboard() {
   const journal = listJournal();
   const pendingOrders = listPendingOrders();
   const awaitingTasks = listAwaitingTasks();
+  const monthSpend = monthTotalCostUsd();
 
   return (
     <div className="mx-auto flex min-h-dvh w-full max-w-5xl flex-col gap-6 px-4 py-6 sm:px-6 sm:py-8">
+      <AutoRefresh />
       <header className="flex items-center gap-3">
         <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-b from-accent-2 to-accent font-display text-lg font-bold text-[#241900]">
           ?
@@ -31,6 +35,14 @@ export default async function Dashboard() {
           </h1>
           <p className="text-xs text-ink-muted">{t.brand.tagline}</p>
         </div>
+        {monthSpend > 0 && (
+          <div className="ml-auto text-right">
+            <p className="font-mono text-sm text-ink">${monthSpend.toFixed(2)}</p>
+            <p className="text-[10px] uppercase tracking-wide text-ink-muted">
+              {t.stats.monthSpend}
+            </p>
+          </div>
+        )}
       </header>
 
       <p className="rounded-xl border border-line bg-panel-2 px-4 py-2.5 text-xs text-ink-muted">

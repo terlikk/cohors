@@ -15,8 +15,10 @@ import {
   getTask,
   listAgents,
   listOrderTasks,
+  maybeCompleteOrder,
   replaceOrderPlan,
   requestTaskChanges,
+  setTaskStatus,
 } from "@/lib/repo";
 import type { EngineKey, RoleKey } from "@/lib/types";
 
@@ -179,7 +181,26 @@ export async function approveTaskAction(formData: FormData): Promise<void> {
     kind: "approved",
     text: t.journalTexts.taskApproved(agent?.name ?? "?", task.title),
   });
+
+  const completed = maybeCompleteOrder(task.orderId);
+  if (completed) {
+    const order = getOrder(task.orderId);
+    addJournalEvent({
+      kind: "order_done",
+      text: t.journalTexts.orderDone(order?.text ?? "", completed.totalCostUsd),
+    });
+  }
   revalidatePath("/");
+}
+
+/** Puts a failed task back into the queue for another attempt. */
+export async function retryTaskAction(formData: FormData): Promise<void> {
+  const taskId = String(formData.get("taskId") ?? "");
+  const task = getTask(taskId);
+  if (!task || task.status !== "failed") return;
+  setTaskStatus(taskId, "queued");
+  revalidatePath("/");
+  revalidatePath(`/orders/${task.orderId}`);
 }
 
 export interface TaskChangesFormState {

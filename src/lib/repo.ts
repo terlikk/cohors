@@ -435,3 +435,40 @@ export function lastEventIsBudgetStop(agentId: string): boolean {
     .get(agentId) as { kind: string } | undefined;
   return row?.kind === "budget_stopped";
 }
+
+/**
+ * Marks the order done when its last task is approved.
+ * Returns the order's total cost when it completed just now.
+ */
+export function maybeCompleteOrder(
+  orderId: string,
+): { totalCostUsd: number } | undefined {
+  const counts = db
+    .prepare(
+      `SELECT COUNT(*) AS total,
+              SUM(CASE WHEN status = 'done' THEN 1 ELSE 0 END) AS done,
+              COALESCE(SUM(cost_usd), 0) AS cost
+       FROM tasks WHERE order_id = ?`,
+    )
+    .get(orderId) as { total: number; done: number; cost: number };
+
+  if (counts.total === 0 || counts.done < counts.total) return undefined;
+
+  const updated = db
+    .prepare(`UPDATE orders SET status = 'done' WHERE id = ? AND status = 'approved'`)
+    .run(orderId);
+  return updated.changes > 0 ? { totalCostUsd: counts.cost } : undefined;
+}
+
+/** Everything spent this month across the whole team. */
+export function monthTotalCostUsd(): number {
+  const monthStart = new Date();
+  monthStart.setUTCDate(1);
+  monthStart.setUTCHours(0, 0, 0, 0);
+  const row = db
+    .prepare(
+      `SELECT COALESCE(SUM(cost_usd), 0) AS total FROM journal WHERE at >= ? AND cost_usd IS NOT NULL`,
+    )
+    .get(monthStart.toISOString()) as { total: number };
+  return row.total;
+}
