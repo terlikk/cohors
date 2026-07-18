@@ -158,6 +158,28 @@ function finalBox(url) {
   console.log(`   ╰${"─".repeat(width)}╯\n`);
 }
 
+/** If this is a git checkout, quietly check whether a newer version exists. */
+function checkForUpdate() {
+  if (!existsSync(path.join(ROOT, ".git"))) return;
+  const git = (args) =>
+    spawnSync("git", args, { cwd: ROOT, encoding: "utf8", timeout: 6000 });
+  try {
+    if (git(["fetch", "--quiet"]).status !== 0) return; // offline — skip silently
+    const behind = git(["rev-list", "--count", "HEAD..@{u}"]).stdout.trim();
+    const n = Number(behind);
+    if (Number.isFinite(n) && n > 0) {
+      done(
+        "Dostępna aktualizacja",
+        `${n} ${n === 1 ? "nowość" : "nowości"} — zaktualizuj: git pull && npm run app`,
+      );
+    } else {
+      done("Masz najnowszą wersję");
+    }
+  } catch {
+    /* network/git hiccup — never block startup on this */
+  }
+}
+
 async function main() {
   banner();
 
@@ -173,6 +195,9 @@ async function main() {
     process.exit(1);
   }
   done("Środowisko sprawdzone", `node v${process.versions.node} · npm ${npm.stdout.trim()}`);
+
+  /* 1b — update check (non-blocking, git only) */
+  checkForUpdate();
 
   /* 2 — dependencies */
   if (existsSync(path.join(ROOT, "node_modules"))) {
