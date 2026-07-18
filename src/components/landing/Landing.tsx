@@ -73,6 +73,13 @@ const FLOW: Array<[string, string]> = [
   ["Rozkaz wykonany", "Wszystko zatwierdzone — z podsumowaniem i realnym kosztem w dzienniku."],
 ];
 
+const USE_CASES: Array<[string, string]> = [
+  ["Mała marka lub sklep", "Zatrudniasz szefa, marketing, copywritera i osobę od publikacji. Cel: „5 postów tygodniowo, reaguj na trendy, w piątek raport”. Marketing kręci się sam — Ty raz dziennie zatwierdzasz."],
+  ["Solo-founder budujący produkt", "Szef + programista (na silniku Claude Code) + tester + marketing. Cel: „dowieź MVP i przygotuj zapowiedź”. Jeden człowiek, a pracujesz jak z całym zespołem."],
+  ["Wywiad rynkowy i monitoring", "Agent-research z celem: „codziennie sprawdzaj 5 konkurentów i raportuj tylko zmiany”. Dostajesz gotowy dziennik: kto zmienił cennik, kto wypuścił funkcję. Zero klikania."],
+  ["Powtarzalna papierkologia", "Zespół szykuje szkice: odpowiedzi, podsumowania, plany. 80% roboty jest gotowe, zanim usiądziesz — a nic nie wychodzi bez Twojego kliknięcia."],
+];
+
 const ADV: Array<[string, string]> = [
   ["Działa lokalnie", "Twój komputer, Twoje klucze. Zero chmury."],
   ["Nic nie wychodzi bez Ciebie", "Akceptujesz każdy plan i każdy wynik."],
@@ -233,6 +240,19 @@ export function Landing() {
               </li>
             ))}
           </ul>
+        </div>
+      </section>
+
+      {/* do czego to użyć */}
+      <section className="mx-auto max-w-3xl px-5 py-16">
+        <Label>Do czego to użyć</Label>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {USE_CASES.map(([title, desc]) => (
+            <div key={title} className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5">
+              <h3 className="text-[14.5px] font-semibold text-white/90">{title}</h3>
+              <p className="mt-2 text-[13px] font-light leading-relaxed text-white/45">{desc}</p>
+            </div>
+          ))}
         </div>
       </section>
 
