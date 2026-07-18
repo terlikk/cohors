@@ -59,9 +59,9 @@ const SHOTS: Array<[string, string]> = [
 ];
 
 const EXAMPLES: Array<[string, string]> = [
-  ["„Wygeneruj 10 000 zł sprzedaży w miesiąc”", "Szef zatrudnia marketingowca i osobę od publikacji, układa plan kampanii — czeka na Twoją zgodę."],
-  ["„Bartek, napraw błąd logowania”", "Programista bierze zadanie od ręki i oddaje poprawkę do odbioru."],
-  ["„Zbadaj 5 konkurentów i zrób podsumowanie”", "Research przygotowuje analizę; marketing dostaje ją jako materiał."],
+  ["„Ogarnij całą premierę produktu — strona, reklamy, maile i 30 postów”", "Szef zatrudnia copywritera, grafika, marketingowca i osobę od reklam. Dostajesz komplet materiałów gotowych do publikacji — Ty tylko klikasz „zatwierdź”."],
+  ["„Zrób ze mnie markę na Instagramie — 30 dni contentu z harmonogramem”", "Zespół planuje cały miesiąc, pisze teksty, projektuje posty i układa kalendarz publikacji. Ty przeglądasz i akceptujesz."],
+  ["„Znajdź 50 idealnych klientów i napisz do każdego z osobna”", "Research buduje listę firm i kontaktów, copywriter pisze 50 spersonalizowanych wiadomości — zatwierdzasz przed wysyłką."],
 ];
 
 const ADV: Array<[string, string]> = [
@@ -177,7 +177,10 @@ export function Landing() {
 
       {/* przykłady */}
       <section className="mx-auto max-w-2xl px-5 py-16">
-        <Label>Przykłady</Label>
+        <Label>Zlecasz jednym zdaniem</Label>
+        <h2 className="mb-7 text-center text-2xl font-bold tracking-tight sm:text-3xl">
+          Jedno zdanie. Cały zespół rusza do roboty.
+        </h2>
         <div className="flex flex-col gap-3">
           {EXAMPLES.map(([q, a]) => (
             <div key={q} className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5">
