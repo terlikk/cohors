@@ -4,13 +4,13 @@ import { CopyCommand } from "@/components/landing/CopyCommand";
 import { t } from "@/lib/i18n";
 
 export const metadata: Metadata = {
-  title: "Twój zespół agentów AI — pobierz",
+  title: "Gladius — twój zespół agentów AI",
   description:
     "Open source. Działa lokalnie na Twoim komputerze. Zatrudniasz agentów, wydajesz polecenia po polsku, zatwierdzasz wyniki.",
 };
 
 const INSTALL_CMD =
-  "git clone https://github.com/terlikk/printflow && cd printflow && npm run app";
+  "git clone https://github.com/terlikk/gladius && cd gladius && npm run app";
 
 function TerminalDemo() {
   return (
@@ -27,13 +27,13 @@ function TerminalDemo() {
         <span className="text-white/35">$</span> npm run app{"\n"}
         {"\n"}
         <span className="text-[#a78bfa]">
-          {"   ▄▀█ █▀▀ █▀▀ █▄░█ ▀█▀   █░█ █▀█"}
+          {"   █▀▀ █░░ ▄▀█ █▀▄ █ █░█ █▀"}
           {"\n"}
-          {"   █▀█ █▄█ ██▄ █░▀█ ░█░   █▀█ ▀▀█"}
+          {"   █▄█ █▄▄ █▀█ █▄▀ █ █▄█ ▄█"}
         </span>
         {"\n"}
         <span className="text-white/30">
-          {"   twój zespół agentów AI · open source · MIT"}
+          {"   Gladius — twój zespół agentów AI · open source · MIT"}
         </span>
         {"\n\n"}
         <span className="text-[#30d158]">{"   ✓"}</span> Środowisko sprawdzone{"  "}
@@ -108,7 +108,7 @@ export default function PobierzPage() {
             Pobierz za darmo
           </a>
           <a
-            href="https://github.com/terlikk/printflow"
+            href="https://github.com/terlikk/gladius"
             className="rounded-full border border-white/[0.15] px-7 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/[0.06]"
           >
             Kod na GitHubie

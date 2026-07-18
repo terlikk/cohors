@@ -1,7 +1,7 @@
-# 🐝 (working title)
+# Gladius
 
-> **Note:** the project name is not decided yet — this repository runs under a
-> temporary working title. Rename is planned before the first public release.
+> **Gladius** — your team of AI agents. (Repository rename from `printflow`
+> to `gladius` is pending on GitHub.)
 
 An open-source system for running a **team of AI agents** the way you run a
 small company: you hire workers with roles, give orders in plain language,

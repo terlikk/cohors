@@ -11,8 +11,7 @@ import type {
  */
 export const pl = {
   brand: {
-    // The project runs under a working title until the name is decided.
-    name: "(bez nazwy)",
+    name: "Gladius",
     tagline: "twój zespół agentów AI",
   },
   nav: {

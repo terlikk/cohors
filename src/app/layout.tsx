@@ -2,7 +2,7 @@ import type { Metadata, Viewport } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Twój zespół agentów AI",
+  title: "Gladius — twój zespół agentów AI",
   description:
     "Open-source'owy system do zarządzania zespołem agentów AI: zatrudniasz, wydajesz polecenia, zatwierdzasz wyniki.",
 };
