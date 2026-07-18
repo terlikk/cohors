@@ -1,4 +1,5 @@
 import Link from "next/link";
+import { redirect } from "next/navigation";
 import { Journal } from "@/components/Journal";
 import { PageHead } from "@/components/PageHead";
 import { t } from "@/lib/i18n";
@@ -14,6 +15,8 @@ export const dynamic = "force-dynamic";
 
 export default async function PulpitPage() {
   const agents = listAgents();
+  // First run — no team yet: go straight to hiring the boss.
+  if (agents.length === 0) redirect("/zatrudnij");
   const journal = listJournal(8);
   const pendingOrders = listPendingOrders();
   const awaitingTasks = listAwaitingTasks();
