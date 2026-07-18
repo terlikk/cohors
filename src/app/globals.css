@@ -1,22 +1,22 @@
 @import "tailwindcss";
 
 @theme {
-  /* Minimal, light, Apple-inspired system. */
-  --color-bg: #f5f5f7;
-  --color-panel: #ffffff;
-  --color-panel-2: #f0f0f2;
-  --color-line: #e4e4e9;
-  --color-accent: #0071e3;
-  --color-accent-2: #0077ed;
-  --color-ink: #1d1d1f;
-  --color-ink-muted: #6e6e73;
+  /* Dark, minimal, Apple-inspired system. */
+  --color-bg: #0b0b0d;
+  --color-panel: #161619;
+  --color-panel-2: #212127;
+  --color-line: #2a2a30;
+  --color-accent: #0a84ff;
+  --color-accent-2: #409cff;
+  --color-ink: #f5f5f7;
+  --color-ink-muted: #9a9aa2;
 
-  /* Role colors (system palette) */
-  --color-role-marketing: #ff3b30;
-  --color-role-developer: #af52de;
-  --color-role-research: #007aff;
-  --color-role-copywriting: #ff9500;
-  --color-role-support: #34c759;
+  /* Role colors (dark system palette) */
+  --color-role-marketing: #ff453a;
+  --color-role-developer: #bf5af2;
+  --color-role-research: #409cff;
+  --color-role-copywriting: #ff9f0a;
+  --color-role-support: #30d158;
 
   --font-display:
     -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI Variable",

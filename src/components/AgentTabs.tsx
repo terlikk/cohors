@@ -24,7 +24,7 @@ export function AgentTabs({ agentId }: { agentId: string }) {
             href={tab.href}
             className={`rounded-full px-4 py-2 text-[13px] font-semibold transition ${
               active
-                ? "bg-ink text-white"
+                ? "bg-ink text-bg"
                 : "bg-panel-2 text-ink hover:brightness-95"
             }`}
           >

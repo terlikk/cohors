@@ -31,7 +31,7 @@ function NavItem({
       href={href}
       className={`flex w-full items-center gap-2 rounded-[10px] px-3 py-2 text-[13.5px] transition md:w-full ${
         active
-          ? "bg-ink font-semibold text-white"
+          ? "bg-ink font-semibold text-bg"
           : "bg-panel-2 text-ink hover:bg-line md:bg-transparent md:hover:bg-panel-2"
       }`}
     >
@@ -45,7 +45,7 @@ function NavItem({
       {count !== undefined && count > 0 && (
         <span
           className={`ml-auto rounded-full px-2 font-mono text-[10.5px] ${
-            active ? "bg-white/20 text-white" : "bg-accent/10 text-accent"
+            active ? "bg-accent text-white" : "bg-accent/15 text-accent"
           }`}
         >
           {count}

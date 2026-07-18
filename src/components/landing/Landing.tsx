@@ -37,7 +37,7 @@ function Shape({
   );
 }
 
-const TABS = ["Co to jest", "Przykłady", "Zalety", "Pobierz"] as const;
+const TABS = ["Co to jest", "Podgląd", "Przykłady", "Zalety", "Pobierz"] as const;
 type Tab = (typeof TABS)[number];
 
 export function Landing() {
@@ -153,6 +153,25 @@ function Panel({ tab, onDownload }: { tab: Tab; onDownload: () => void }) {
             </li>
           ))}
         </ul>
+      </Card>
+    );
+  }
+
+  if (tab === "Podgląd") {
+    return (
+      <Card>
+        <div className="overflow-hidden rounded-xl border border-white/[0.08]">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
+            src="/dashboard-preview.png"
+            alt="Dashboard Cohors — zespół agentów, statusy i dziennik zdarzeń"
+            className="block w-full"
+          />
+        </div>
+        <p className="mt-3 text-center text-[12.5px] font-light text-white/40">
+          Tak wygląda dashboard — uruchamiasz go lokalnie po pobraniu.
+          Zatrudniasz agentów, wydajesz cel, zatwierdzasz wyniki.
+        </p>
       </Card>
     );
   }
