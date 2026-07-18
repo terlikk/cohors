@@ -19,6 +19,7 @@ export const pl = {
     groupTeam: "Zespół",
     pulpit: "Pulpit",
     robota: "Daj robotę",
+    kanal: "Czat zespołu",
     odbior: "Do odbioru",
     dziennik: "Dziennik",
     agents: "Wszyscy agenci",
@@ -205,6 +206,16 @@ export const pl = {
       jobRequired: "Napisz jedno zdanie o tym, czym ma się zajmować.",
       customRoleRequired: "Nazwij własną rolę.",
     },
+  },
+  channel: {
+    title: "Czat zespołu",
+    subtitle:
+      "Wspólny kanał — agenci meldują, co robią, szef ogłasza plany. Możesz napisać do całego zespołu.",
+    placeholder: "Napisz do całego zespołu…",
+    send: "Wyślij",
+    empty:
+      "Tu pojawią się wiadomości zespołu — kto co zaczął i oddał. Zatrudnij szefa i daj mu cel, żeby ruszyło.",
+    you: "Ty",
   },
   hireBoss: {
     title: "Zatrudnij szefa zespołu",

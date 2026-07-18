@@ -3,6 +3,7 @@ import { t } from "@/lib/i18n";
 import type { PlannedTask } from "@/lib/planner";
 import {
   addJournalEvent,
+  addTeamMessage,
   createAgent,
   createOrderWithPlan,
   getAgentOnboarding,
@@ -172,14 +173,18 @@ export async function runManagerPipeline(
       onboarding: [],
     });
     nameToId.set(hire.name.toLocaleLowerCase("pl"), id);
+    const roleLabel =
+      role === "custom" ? (hire.customRoleLabel ?? hire.role) : t.roles[role];
     addJournalEvent({
       agentId: manager.id,
       kind: "hired",
-      text: t.journalTexts.managerHired(
-        manager.name,
-        hire.name,
-        role === "custom" ? (hire.customRoleLabel ?? hire.role) : t.roles[role],
-      ),
+      text: t.journalTexts.managerHired(manager.name, hire.name, roleLabel),
+    });
+    addTeamMessage({
+      agentId: manager.id,
+      authorName: manager.name,
+      role: "manager",
+      text: `Witam w zespole ${hire.name} (${roleLabel}). 👋`,
     });
   }
 
@@ -210,6 +215,12 @@ export async function runManagerPipeline(
       kind: "plan_ready",
       text: t.journalTexts.managerPlanned(manager.name, planned.length),
       costUsd: costUsd > 0 ? costUsd : undefined,
+    });
+    addTeamMessage({
+      agentId: manager.id,
+      authorName: manager.name,
+      role: "manager",
+      text: `Cel: „${goal}”. Rozpisałem plan (${planned.length} zad.) — czeka na akceptację szefa, potem ruszamy.`,
     });
   }
 

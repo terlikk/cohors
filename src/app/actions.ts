@@ -7,6 +7,7 @@ import { planOrder } from "@/lib/planner";
 import {
   addJournalEvent,
   addMessage,
+  addTeamMessage,
   approveOrder,
   approveTask,
   createAgent,
@@ -237,8 +238,16 @@ export async function approveTaskAction(formData: FormData): Promise<void> {
       kind: "order_done",
       text: t.journalTexts.orderDone(order?.text ?? "", completed.totalCostUsd),
     });
+    const manager = listAgents().find((a) => a.role === "manager");
+    addTeamMessage({
+      agentId: manager?.id ?? null,
+      authorName: manager?.name ?? "Zespół",
+      role: "manager",
+      text: `Rozkaz „${order?.text ?? ""}” wykonany w całości. 🎉 Koszt: $${completed.totalCostUsd.toFixed(2)}.`,
+    });
   }
   revalidatePath("/pulpit");
+  revalidatePath("/kanal");
 }
 
 /** Puts a failed task back into the queue for another attempt. */
@@ -283,6 +292,14 @@ export async function sendChatMessage(formData: FormData): Promise<void> {
   if (!text || !getAgent(agentId)) return;
   addMessage(agentId, "boss", text);
   revalidatePath(`/agenci/${agentId}`);
+}
+
+/** Boss posts a message to the shared team channel. */
+export async function sendTeamMessage(formData: FormData): Promise<void> {
+  const text = String(formData.get("text") ?? "").trim();
+  if (!text) return;
+  addTeamMessage({ authorName: "Ty", role: null, text });
+  revalidatePath("/kanal");
 }
 
 export interface AgentSettingsState {

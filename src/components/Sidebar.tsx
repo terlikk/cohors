@@ -94,6 +94,7 @@ export function Sidebar({
             active={is("/odbior")}
             count={awaitingCount}
           />
+          <NavItem href="/kanal" label={t.nav.kanal} active={is("/kanal")} />
           <NavItem href="/dziennik" label={t.nav.dziennik} active={is("/dziennik")} />
         </div>
 

@@ -85,6 +85,15 @@ function open(): Database.Database {
       text TEXT NOT NULL,
       cost_usd REAL
     );
+
+    CREATE TABLE IF NOT EXISTS team_messages (
+      id TEXT PRIMARY KEY,
+      agent_id TEXT,
+      author_name TEXT NOT NULL,
+      role TEXT,
+      text TEXT NOT NULL,
+      created_at TEXT NOT NULL
+    );
   `);
 
   if (IS_DEMO) seedDemo(db);

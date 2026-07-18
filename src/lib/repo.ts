@@ -565,3 +565,59 @@ export function updateAgentSettings(
 export function deleteAgent(id: string): void {
   db.prepare(`DELETE FROM agents WHERE id = ?`).run(id);
 }
+
+/* ── Team channel (group chat) ──────────────────────────────────────── */
+
+export interface TeamMessage {
+  id: string;
+  agentId: string | null;
+  authorName: string;
+  role: string | null;
+  text: string;
+  createdAt: string;
+}
+
+/** Posts a message to the shared team channel. Boss messages pass agentId null. */
+export function addTeamMessage(input: {
+  agentId?: string | null;
+  authorName: string;
+  role?: string | null;
+  text: string;
+}): void {
+  db.prepare(
+    `INSERT INTO team_messages (id, agent_id, author_name, role, text, created_at)
+     VALUES (?, ?, ?, ?, ?, ?)`,
+  ).run(
+    crypto.randomUUID(),
+    input.agentId ?? null,
+    input.authorName,
+    input.role ?? null,
+    input.text,
+    new Date().toISOString(),
+  );
+}
+
+/** Newest `limit` team-channel messages, oldest-first for display. */
+export function listTeamMessages(limit = 100): TeamMessage[] {
+  const rows = db
+    .prepare(
+      `SELECT id, agent_id, author_name, role, text, created_at, rowid AS rid
+       FROM team_messages ORDER BY rid DESC LIMIT ?`,
+    )
+    .all(limit) as Array<{
+    id: string;
+    agent_id: string | null;
+    author_name: string;
+    role: string | null;
+    text: string;
+    created_at: string;
+  }>;
+  return rows.reverse().map((r) => ({
+    id: r.id,
+    agentId: r.agent_id,
+    authorName: r.author_name,
+    role: r.role,
+    text: r.text,
+    createdAt: r.created_at,
+  }));
+}

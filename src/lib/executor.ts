@@ -4,6 +4,7 @@ import { runManagerPipeline } from "@/lib/manager";
 import {
   addJournalEvent,
   addMessage,
+  addTeamMessage,
   getAgent,
   getAgentOnboarding,
   getDependencyResults,
@@ -151,6 +152,12 @@ async function runTask(task: Task): Promise<void> {
     kind: "task_started",
     text: t.journalTexts.taskStarted(agent.name, task.title),
   });
+  addTeamMessage({
+    agentId: agent.id,
+    authorName: agent.name,
+    role: agent.role,
+    text: `Zaczynam: „${task.title}”.`,
+  });
 
   try {
     const engine = getEngine(agent.engine);
@@ -177,6 +184,12 @@ async function runTask(task: Task): Promise<void> {
       kind: "waiting_approval",
       text: t.journalTexts.taskDelivered(agent.name, task.title),
       costUsd: result.costUsd > 0 ? result.costUsd : undefined,
+    });
+    addTeamMessage({
+      agentId: agent.id,
+      authorName: agent.name,
+      role: agent.role,
+      text: `Oddałem do odbioru: „${task.title}”. Czeka na akceptację szefa.`,
     });
   } catch (err) {
     console.error(`task ${task.id} failed:`, err);
