@@ -205,7 +205,7 @@ async function main() {
   );
 
   await spinnerWhile("Uruchamiam serwer", waitFor(url));
-  finalBox(url);
+  finalBox(`${url}/pulpit`);
 }
 
 if (process.argv.includes("--rebuild")) {

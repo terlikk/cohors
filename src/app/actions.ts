@@ -82,8 +82,8 @@ export async function hireAgent(
     text: t.journalTexts.hired(name, roleLabel),
   });
 
-  revalidatePath("/");
-  redirect("/");
+  revalidatePath("/pulpit");
+  redirect("/pulpit");
 }
 
 /** First-run flow: hires the team manager and lands in their chat. */
@@ -126,7 +126,7 @@ export async function hireBossAction(
     goal ? t.hireBoss.greetingWithGoal(goal) : t.hireBoss.greeting,
   );
 
-  revalidatePath("/");
+  revalidatePath("/pulpit");
   redirect(`/agenci/${id}/czat`);
 }
 
@@ -165,7 +165,7 @@ export async function submitOrder(
     costUsd: plan.costUsd > 0 ? plan.costUsd : undefined,
   });
 
-  revalidatePath("/");
+  revalidatePath("/pulpit");
   redirect(`/orders/${orderId}`);
 }
 
@@ -176,7 +176,7 @@ export async function approvePlan(formData: FormData): Promise<void> {
 
   approveOrder(orderId);
   addJournalEvent({ kind: "plan_approved", text: t.journalTexts.planApproved });
-  revalidatePath("/");
+  revalidatePath("/pulpit");
   revalidatePath(`/orders/${orderId}`);
 }
 
@@ -212,7 +212,7 @@ export async function requestPlanChanges(
     costUsd: plan.costUsd > 0 ? plan.costUsd : undefined,
   });
 
-  revalidatePath("/");
+  revalidatePath("/pulpit");
   revalidatePath(`/orders/${orderId}`);
   return {};
 }
@@ -238,7 +238,7 @@ export async function approveTaskAction(formData: FormData): Promise<void> {
       text: t.journalTexts.orderDone(order?.text ?? "", completed.totalCostUsd),
     });
   }
-  revalidatePath("/");
+  revalidatePath("/pulpit");
 }
 
 /** Puts a failed task back into the queue for another attempt. */
@@ -247,7 +247,7 @@ export async function retryTaskAction(formData: FormData): Promise<void> {
   const task = getTask(taskId);
   if (!task || task.status !== "failed") return;
   setTaskStatus(taskId, "queued");
-  revalidatePath("/");
+  revalidatePath("/pulpit");
   revalidatePath(`/orders/${task.orderId}`);
 }
 
@@ -273,7 +273,7 @@ export async function requestTaskChangesAction(
     kind: "changes_requested",
     text: t.journalTexts.taskChanges(agent?.name ?? "?", task.title, comment),
   });
-  revalidatePath("/");
+  revalidatePath("/pulpit");
   return {};
 }
 
@@ -326,6 +326,6 @@ export async function fireAgentAction(formData: FormData): Promise<void> {
       agent.customRoleLabel ?? t.roles[agent.role],
     ),
   });
-  revalidatePath("/");
+  revalidatePath("/pulpit");
   redirect("/agenci");
 }

@@ -82,7 +82,7 @@ export function Sidebar({
           <h4 className="hidden px-3 pb-1.5 text-[10.5px] font-semibold uppercase tracking-[0.09em] text-ink-muted/70 md:block">
             {t.nav.groupWork}
           </h4>
-          <NavItem href="/" label={t.nav.pulpit} active={is("/")} />
+          <NavItem href="/pulpit" label={t.nav.pulpit} active={is("/pulpit")} />
           <NavItem
             href="/robota"
             label={t.nav.robota}
