@@ -1,7 +1,6 @@
 # Cohors
 
-> **Cohors** — your team of AI agents. (Repository rename from `printflow`
-> to `cohors` is pending on GitHub.)
+> **Cohors** — your team of AI agents.
 
 An open-source system for running a **team of AI agents** the way you run a
 small company: you hire workers with roles, give orders in plain language,
@@ -54,17 +53,15 @@ heuristic so the product stays usable.
 Requirements: Node.js 20+.
 
 ```bash
-git clone <this repo> && cd <repo>
-npm install
-npm run app     # builds and starts on http://localhost:3000
+git clone https://github.com/terlikk/cohors && cd cohors
+npm run app     # installs, builds, and starts on http://localhost:3000
 ```
 
-That's it — no database or server setup. Data lives in a local SQLite file
-(`data/app.db`). Optional configuration in `.env` (see `.env.example`).
-For development: `npm run dev`.
-
-A `npx <name> start` one-liner ships together with the npm package once the
-project has its name.
+`npm run app` runs a small launcher (`bin/cli.mjs`) that checks your
+environment, installs dependencies, builds, starts the server, and prints
+the dashboard link. No database or server setup — data lives in a local
+SQLite file (`data/app.db`). Optional configuration in `.env` (see
+`.env.example`). For development: `npm run dev`.
 
 ## Hosted / demo mode
 
