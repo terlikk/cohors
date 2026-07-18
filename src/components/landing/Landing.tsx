@@ -1,7 +1,6 @@
 "use client";
 
 import { motion } from "framer-motion";
-import { useState } from "react";
 import { CopyCommand } from "@/components/landing/CopyCommand";
 
 const INSTALL_CMD =
@@ -37,25 +36,47 @@ function Shape({
   );
 }
 
-const TABS = ["Co to jest", "Podgląd", "Przykłady", "Zalety", "Pobierz"] as const;
-type Tab = (typeof TABS)[number];
+function Label({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-4 text-center text-[11px] font-semibold uppercase tracking-[0.14em] text-white/35">
+      {children}
+    </p>
+  );
+}
+
+const POINTS = [
+  "Zatrudniasz agentów z rolami — opisujesz zwykłym zdaniem, kogo potrzebujesz.",
+  "Dajesz cel. Agent-szef sam dobiera zespół i rozdziela zadania.",
+  "Agenci pracują sami; Ty zatwierdzasz każdy plan i wynik, zanim cokolwiek wyjdzie.",
+  "Wszystko na Twoim komputerze, z Twoimi kluczami.",
+];
+
+const SHOTS: Array<[string, string]> = [
+  ["p03", "Pulpit — co się dzieje w zespole na żywo: agenci, statusy, dziennik."],
+  ["p05", "Plan — zadania i zależności; akceptujesz, zanim ktoś zacznie."],
+  ["p07", "Do odbioru — wynik agenta czeka na Twoją zgodę albo uwagi."],
+  ["p02", "Czat z szefem — dajesz cel po polsku, on buduje zespół."],
+];
+
+const EXAMPLES: Array<[string, string]> = [
+  ["„Wygeneruj 10 000 zł sprzedaży w miesiąc”", "Szef zatrudnia marketingowca i osobę od publikacji, układa plan kampanii — czeka na Twoją zgodę."],
+  ["„Bartek, napraw błąd logowania”", "Programista bierze zadanie od ręki i oddaje poprawkę do odbioru."],
+  ["„Zbadaj 5 konkurentów i zrób podsumowanie”", "Research przygotowuje analizę; marketing dostaje ją jako materiał."],
+];
+
+const ADV: Array<[string, string]> = [
+  ["Działa lokalnie", "Twój komputer, Twoje klucze. Zero chmury."],
+  ["Nic nie wychodzi bez Ciebie", "Akceptujesz każdy plan i każdy wynik."],
+  ["Budżety z auto-stopem", "Limit w USD na agenta; po przekroczeniu praca staje."],
+  ["Silnik do wyboru", "Claude Code, Codex, API Anthropic albo własny HTTP."],
+  ["Po polsku i open source", "Licencja MIT — cały kod jest Twój."],
+];
 
 export function Landing() {
-  const [tab, setTab] = useState<Tab>("Co to jest");
-
   return (
-    <div className="relative flex min-h-dvh flex-col overflow-hidden bg-[#030303] text-white">
-      {/* background */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <Shape className="left-[-8%] top-[8%]" delay={0.2} rotate={12} w={560} h={130} gradient="from-indigo-500/[0.15]" />
-        <Shape className="right-[-6%] top-[62%]" delay={0.35} rotate={-15} w={480} h={120} gradient="from-rose-500/[0.15]" />
-        <Shape className="left-[6%] bottom-[4%]" delay={0.3} rotate={-8} w={280} h={80} gradient="from-violet-500/[0.15]" />
-        <Shape className="right-[14%] top-[6%]" delay={0.45} rotate={18} w={190} h={60} gradient="from-amber-500/[0.15]" />
-      </div>
-      <div className="pointer-events-none absolute inset-0 bg-gradient-to-t from-[#030303] via-transparent to-[#030303]/70" />
-
+    <div className="bg-[#030303] text-white">
       {/* top bar */}
-      <header className="relative z-10 flex items-center justify-between px-6 py-5 md:px-10">
+      <header className="absolute inset-x-0 top-0 z-20 flex items-center justify-between px-6 py-5 md:px-10">
         <span className="text-[15px] font-bold tracking-tight">Cohors</span>
         <a
           href="https://github.com/terlikk/cohors"
@@ -65,233 +86,160 @@ export function Landing() {
         </a>
       </header>
 
-      {/* center */}
-      <main className="relative z-10 mx-auto flex w-full max-w-3xl flex-1 flex-col items-center justify-center px-5 pb-8 text-center">
-        <motion.h1
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.15 }}
-          className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl"
-        >
-          <span className="bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent">
-            Twój zespół
-          </span>
-          <br />
-          <span className="bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300 bg-clip-text text-transparent">
-            agentów AI
-          </span>
-        </motion.h1>
-        <motion.p
-          initial={{ opacity: 0, y: 24 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.8, delay: 0.3 }}
-          className="mx-auto mt-4 max-w-md text-[15px] font-light leading-relaxed text-white/45"
-        >
-          Zatrudniasz agentów, wydajesz polecenia po polsku, zatwierdzasz
-          wyniki. Reszta dzieje się sama — lokalnie, na Twoim komputerze.
-        </motion.p>
+      {/* hero */}
+      <section className="relative flex min-h-[88vh] items-center justify-center overflow-hidden px-5 text-center">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <Shape className="left-[-8%] top-[10%]" delay={0.2} rotate={12} w={560} h={130} gradient="from-indigo-500/[0.15]" />
+          <Shape className="right-[-6%] top-[58%]" delay={0.35} rotate={-15} w={480} h={120} gradient="from-rose-500/[0.15]" />
+          <Shape className="left-[6%] bottom-[6%]" delay={0.3} rotate={-8} w={280} h={80} gradient="from-violet-500/[0.15]" />
+          <Shape className="right-[16%] top-[8%]" delay={0.45} rotate={18} w={190} h={60} gradient="from-amber-500/[0.15]" />
+        </div>
+        <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#030303]" />
 
-        {/* tabs */}
-        <div className="mt-8 flex flex-wrap items-center justify-center gap-2">
-          {TABS.map((t) => (
-            <button
-              key={t}
-              type="button"
-              onClick={() => setTab(t)}
-              className={`rounded-full px-4 py-2 text-[13px] font-semibold transition ${
-                tab === t
-                  ? "bg-white text-black"
-                  : "border border-white/12 text-white/65 hover:bg-white/[0.06]"
-              }`}
-            >
-              {t}
-            </button>
+        <div className="relative z-10 max-w-2xl">
+          <motion.h1
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.1 }}
+            className="text-4xl font-bold leading-[1.05] tracking-tight sm:text-6xl md:text-7xl"
+          >
+            <span className="bg-gradient-to-b from-white to-white/80 bg-clip-text text-transparent">
+              Twój zespół
+            </span>
+            <br />
+            <span className="bg-gradient-to-r from-indigo-300 via-white/90 to-rose-300 bg-clip-text text-transparent">
+              agentów AI
+            </span>
+          </motion.h1>
+          <motion.p
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.25 }}
+            className="mx-auto mt-5 max-w-md text-[15px] font-light leading-relaxed text-white/45 sm:text-base"
+          >
+            Zatrudniasz agentów, wydajesz polecenia po polsku, zatwierdzasz
+            wyniki. Reszta dzieje się sama — lokalnie, na Twoim komputerze.
+          </motion.p>
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.8, delay: 0.4 }}
+            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+          >
+            <a href="#pobierz" className="rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition hover:bg-white/90">
+              Pobierz za darmo
+            </a>
+            <a href="https://github.com/terlikk/cohors" className="rounded-full border border-white/15 px-7 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/[0.06]">
+              Kod na GitHubie
+            </a>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* co to robi */}
+      <section className="mx-auto max-w-2xl px-5 py-16">
+        <Label>Co to robi</Label>
+        <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
+          Zarządzasz zespołem agentów AI jak małą firmą.
+        </h2>
+        <ul className="mx-auto mt-7 flex max-w-xl flex-col gap-3">
+          {POINTS.map((p) => (
+            <li key={p} className="flex gap-3 text-[14.5px] font-light text-white/55">
+              <span className="mt-2 h-1 w-1 shrink-0 rounded-full bg-white/40" />
+              {p}
+            </li>
+          ))}
+        </ul>
+      </section>
+
+      {/* jak to wygląda */}
+      <section className="mx-auto max-w-4xl px-5 py-16">
+        <Label>Jak to wygląda</Label>
+        <div className="grid gap-5 sm:grid-cols-2">
+          {SHOTS.map(([file, caption]) => (
+            <figure key={file} className="flex flex-col gap-2.5">
+              <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b0b0d]">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
+                  loading="lazy"
+                  src={`/panels/${file}.png`}
+                  alt={caption}
+                  className="block w-full"
+                />
+              </div>
+              <figcaption className="px-1 text-[12.5px] font-light leading-relaxed text-white/45">
+                {caption}
+              </figcaption>
+            </figure>
           ))}
         </div>
+      </section>
 
-        {/* panel */}
-        <div className="mt-5 w-full">
-          <Panel tab={tab} onDownload={() => setTab("Pobierz")} />
+      {/* przykłady */}
+      <section className="mx-auto max-w-2xl px-5 py-16">
+        <Label>Przykłady</Label>
+        <div className="flex flex-col gap-3">
+          {EXAMPLES.map(([q, a]) => (
+            <div key={q} className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5">
+              <p className="font-mono text-[12.5px] text-white/85">{q}</p>
+              <p className="mt-1.5 text-[13px] font-light leading-relaxed text-white/45">→ {a}</p>
+            </div>
+          ))}
         </div>
-      </main>
+      </section>
 
-      <footer className="relative z-10 flex items-center justify-center gap-2 px-6 py-5 text-[11.5px] text-white/30">
+      {/* zalety */}
+      <section className="mx-auto max-w-2xl px-5 py-16">
+        <Label>Dlaczego Cohors</Label>
+        <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-6">
+          <ul className="flex flex-col divide-y divide-white/[0.06]">
+            {ADV.map(([h, d]) => (
+              <li key={h} className="flex flex-col gap-0.5 py-3 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:gap-3">
+                <span className="text-[14px] font-semibold text-white/90 sm:w-56 sm:shrink-0">{h}</span>
+                <span className="text-[13.5px] font-light text-white/45">{d}</span>
+              </li>
+            ))}
+          </ul>
+        </div>
+      </section>
+
+      {/* pobierz */}
+      <section id="pobierz" className="mx-auto max-w-2xl px-5 py-16">
+        <Label>Pobierz</Label>
+        <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
+          Jedna komenda.
+        </h2>
+        <p className="mx-auto mt-3 max-w-md text-center text-[14px] font-light text-white/45">
+          Bez konta i bez chmury. Wklej w terminal — dostaniesz link do
+          dashboardu na localhost.
+        </p>
+        <div className="mt-7">
+          <CopyCommand command={INSTALL_CMD} />
+        </div>
+        <ol className="mt-5 flex flex-col gap-3">
+          {[
+            "Cohors sam się zainstaluje, zbuduje i uruchomi.",
+            "W terminalu dostaniesz link do dashboardu (localhost).",
+            "Otwórz go i zacznij zatrudniać agentów.",
+          ].map((s, i) => (
+            <li key={s} className="flex gap-3">
+              <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 font-mono text-[12px] text-white/80">
+                {i + 1}
+              </span>
+              <span className="flex-1 pt-0.5 text-[14px] font-light leading-relaxed text-white/60">{s}</span>
+            </li>
+          ))}
+        </ol>
+        <p className="mt-5 text-center font-mono text-[11px] text-white/30">
+          wymagania: Node 20+ · git · Claude Code lub klucz API Anthropic
+        </p>
+      </section>
+
+      <footer className="flex items-center justify-center gap-2 border-t border-white/[0.06] px-6 py-8 text-[11.5px] text-white/30">
         <span>Cohors</span>
         <span>·</span>
         <span>open source · MIT</span>
       </footer>
     </div>
-  );
-}
-
-const PANELS: Array<{ file: string; title: string; desc: string }> = [
-  { file: "p01", title: "Zatrudnij szefa", desc: "Dajesz szefowi imię i odpowiadasz na kilka pytań o firmę i cel. To on zatrudni resztę zespołu i rozpisze plan." },
-  { file: "p02", title: "Czat z szefem", desc: "Rozmawiasz z nim po polsku jak z pracownikiem — dajesz cel, prosisz o raport. Stąd rusza cała robota." },
-  { file: "p03", title: "Pulpit", desc: "Co się dzieje na żywo: kafelki agentów ze statusami, alert o planie do akceptacji i dziennik zdarzeń." },
-  { file: "p04", title: "Daj robotę", desc: "Jedno pole na polecenie dla całego zespołu. Piszesz po ludzku, system rozbija to na zadania." },
-  { file: "p05", title: "Plan działania", desc: "Zanim ktoś zacznie: zadania, kto je robi, zależności. Akceptujesz („Dawaj”) albo odsyłasz do zmiany." },
-  { file: "p06", title: "Do odbioru — plan", desc: "Wszystko, co czeka na Twoją decyzję, w jednym miejscu. Najpierw ląduje tu plan od szefa." },
-  { file: "p07", title: "Do odbioru — wynik", desc: "Gotowy wynik agenta czeka na akceptację. Zatwierdzasz albo odsyłasz z uwagami — nic nie wychodzi bez Ciebie." },
-  { file: "p08", title: "Agent — Status", desc: "Co agent teraz robi, co ma w kolejce, ile wydał z budżetu i historia jego pracy." },
-  { file: "p09", title: "Agent — Czat", desc: "Rozmowa jeden-na-jeden z konkretnym agentem: pytasz o postępy, doprecyzowujesz zadanie." },
-  { file: "p10", title: "Agent — Profil", desc: "Opis stanowiska i odpowiedzi z onboardingu — trwała „pamięć” o tym, kim jest agent." },
-  { file: "p11", title: "Agent — Opcje", desc: "Zmieniasz budżet, silnik (Claude Code / Codex / API / własny HTTP) albo zwalniasz agenta." },
-  { file: "p12", title: "Wszyscy agenci", desc: "Cały zespół na jednym ekranie: role, statusy i budżety." },
-  { file: "p13", title: "Dziennik", desc: "Pełna historia: kto co zaczął, skończył i ile to kosztowało — z godziną i kwotą." },
-  { file: "p14", title: "Zatrudnij agenta", desc: "Gdy masz już zespół: dodajesz kolejnego — rola, imię, opis stanowiska, silnik, budżet." },
-];
-
-function PreviewGallery() {
-  const [i, setI] = useState(0);
-  const panel = PANELS[i];
-  return (
-    <div className="flex flex-col gap-3">
-      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
-        {PANELS.map((p, idx) => (
-          <button
-            key={p.file}
-            type="button"
-            onClick={() => setI(idx)}
-            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-semibold transition ${
-              i === idx
-                ? "bg-white text-black"
-                : "border border-white/12 text-white/55 hover:bg-white/[0.06]"
-            }`}
-          >
-            {p.title}
-          </button>
-        ))}
-      </div>
-      <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b0b0d]">
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          key={panel.file}
-          src={`/panels/${panel.file}.png`}
-          alt={panel.title}
-          className="block max-h-[46vh] w-full object-contain"
-        />
-      </div>
-      <p className="text-center text-[13px] font-light leading-relaxed text-white/50">
-        <span className="font-semibold text-white/80">{panel.title}.</span>{" "}
-        {panel.desc}
-      </p>
-    </div>
-  );
-}
-
-function Card({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 text-left">
-      {children}
-    </div>
-  );
-}
-
-function Panel({ tab, onDownload }: { tab: Tab; onDownload: () => void }) {
-  if (tab === "Co to jest") {
-    const points = [
-      "Zatrudniasz agentów z rolami — opisujesz zwykłym zdaniem, kogo potrzebujesz.",
-      "Dajesz cel. Agent-szef sam dobiera zespół i rozdziela zadania.",
-      "Agenci pracują sami; Ty zatwierdzasz każdy plan i wynik, zanim cokolwiek wyjdzie.",
-      "Wszystko na Twoim komputerze, z Twoimi kluczami.",
-    ];
-    return (
-      <Card>
-        <p className="mb-3 text-[15px] font-semibold text-white/90">
-          Zarządzasz zespołem agentów AI jak małą firmą.
-        </p>
-        <ul className="flex flex-col gap-2.5">
-          {points.map((p) => (
-            <li key={p} className="flex gap-2.5 text-[13.5px] font-light text-white/55">
-              <span className="mt-1.5 h-1 w-1 shrink-0 rounded-full bg-white/40" />
-              {p}
-            </li>
-          ))}
-        </ul>
-      </Card>
-    );
-  }
-
-  if (tab === "Podgląd") {
-    return <PreviewGallery />;
-  }
-
-  if (tab === "Przykłady") {
-    const ex = [
-      ["„Wygeneruj 10 000 zł sprzedaży w miesiąc”", "Szef zatrudnia marketingowca i osobę od publikacji, układa plan kampanii — czeka na Twoją zgodę."],
-      ["„Bartek, napraw błąd logowania”", "Programista bierze zadanie od ręki i oddaje poprawkę do odbioru."],
-      ["„Zbadaj 5 konkurentów i zrób podsumowanie”", "Research przygotowuje analizę; marketing dostaje ją jako materiał do kampanii."],
-    ];
-    return (
-      <div className="flex flex-col gap-2.5">
-        {ex.map(([q, a]) => (
-          <Card key={q}>
-            <p className="font-mono text-[12.5px] text-white/85">{q}</p>
-            <p className="mt-1.5 text-[13px] font-light leading-relaxed text-white/45">
-              → {a}
-            </p>
-          </Card>
-        ))}
-      </div>
-    );
-  }
-
-  if (tab === "Zalety") {
-    const adv = [
-      ["Działa lokalnie", "Twój komputer, Twoje klucze. Zero chmury."],
-      ["Nic nie wychodzi bez Ciebie", "Akceptujesz każdy plan i każdy wynik."],
-      ["Budżety z auto-stopem", "Limit w USD na agenta; po przekroczeniu praca staje."],
-      ["Silnik do wyboru", "Claude Code, Codex, API Anthropic albo własny HTTP."],
-      ["Po polsku i open source", "Licencja MIT — cały kod jest Twój."],
-    ];
-    return (
-      <Card>
-        <ul className="flex flex-col divide-y divide-white/[0.06]">
-          {adv.map(([h, d]) => (
-            <li key={h} className="flex flex-col gap-0.5 py-2.5 first:pt-0 last:pb-0 sm:flex-row sm:items-baseline sm:gap-3">
-              <span className="text-[13.5px] font-semibold text-white/90 sm:w-52 sm:shrink-0">
-                {h}
-              </span>
-              <span className="text-[13px] font-light text-white/45">{d}</span>
-            </li>
-          ))}
-        </ul>
-      </Card>
-    );
-  }
-
-  // Pobierz
-  const steps = [
-    ["1", "Wklej komendę w terminal:"],
-    ["2", "Cohors sam się zainstaluje, zbuduje i uruchomi."],
-    ["3", "W terminalu dostaniesz link do dashboardu (localhost) — otwórz go i zacznij zatrudniać."],
-  ];
-  return (
-    <Card>
-      <div className="flex flex-col gap-3">
-        <div className="flex gap-3">
-          <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 font-mono text-[12px] text-white/80">
-            1
-          </span>
-          <div className="min-w-0 flex-1">
-            <p className="mb-2 text-[13.5px] text-white/70">Wklej komendę w terminal:</p>
-            <CopyCommand command={INSTALL_CMD} />
-          </div>
-        </div>
-        {steps.slice(1).map(([n, s]) => (
-          <div key={n} className="flex gap-3">
-            <span className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-white/10 font-mono text-[12px] text-white/80">
-              {n}
-            </span>
-            <p className="flex-1 pt-0.5 text-[13.5px] font-light leading-relaxed text-white/60">
-              {s}
-            </p>
-          </div>
-        ))}
-        <p className="mt-1 border-t border-white/[0.06] pt-3 font-mono text-[11px] text-white/30">
-          wymagania: Node 20+ · git · Claude Code lub klucz API Anthropic
-        </p>
-      </div>
-    </Card>
   );
 }
