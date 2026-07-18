@@ -1,7 +1,7 @@
-# Gladius
+# Cohors
 
-> **Gladius** — your team of AI agents. (Repository rename from `printflow`
-> to `gladius` is pending on GitHub.)
+> **Cohors** — your team of AI agents. (Repository rename from `printflow`
+> to `cohors` is pending on GitHub.)
 
 An open-source system for running a **team of AI agents** the way you run a
 small company: you hire workers with roles, give orders in plain language,

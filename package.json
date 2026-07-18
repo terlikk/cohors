@@ -1,11 +1,11 @@
 {
-  "name": "gladius",
+  "name": "cohors",
   "version": "0.1.0",
   "private": true,
-  "description": "Gladius — open-source system for running a team of AI agents like a small company",
+  "description": "Cohors — open-source system for running a team of AI agents like a small company",
   "license": "MIT",
   "bin": {
-    "gladius": "./bin/cli.mjs"
+    "cohors": "./bin/cli.mjs"
   },
   "scripts": {
     "dev": "next dev",

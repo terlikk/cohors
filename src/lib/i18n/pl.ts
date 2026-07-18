@@ -11,7 +11,7 @@ import type {
  */
 export const pl = {
   brand: {
-    name: "Gladius",
+    name: "Cohors",
     tagline: "twój zespół agentów AI",
   },
   nav: {

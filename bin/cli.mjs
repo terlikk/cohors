@@ -24,15 +24,15 @@ const violet = (s) => `${ESC}38;5;141m${s}${ESC}0m`;
 
 const BANNER = [
   "",
-  "   █▀▀ █░░ ▄▀█ █▀▄ █ █░█ █▀",
-  "   █▄█ █▄▄ █▀█ █▄▀ █ █▄█ ▄█",
+  "   █▀▀ █▀█ █░█ █▀█ █▀█ █▀",
+  "   █▄▄ █▄█ █▀█ █▄█ █▀▄ ▄█",
   "",
 ];
 
 function banner() {
   if (TTY) process.stdout.write(`${ESC}2J${ESC}H`); // clear screen
   console.log(violet(BANNER.join("\n")));
-  console.log(dim("   Gladius — twój zespół agentów AI · open source · MIT\n"));
+  console.log(dim("   Cohors — twój zespół agentów AI · open source · MIT\n"));
 }
 
 const SPIN = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"];
