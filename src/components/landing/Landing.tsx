@@ -64,6 +64,15 @@ const EXAMPLES: Array<[string, string]> = [
   ["„Znajdź 50 idealnych klientów i napisz do każdego z osobna”", "Research buduje listę firm i kontaktów, copywriter pisze 50 spersonalizowanych wiadomości — zatwierdzasz przed wysyłką."],
 ];
 
+const FLOW: Array<[string, string]> = [
+  ["Dajesz cel", "Piszesz szefowi jedno zdanie po polsku — np. „ogarnij premierę produktu”."],
+  ["Szef buduje zespół", "Sam dobiera i zatrudnia potrzebnych agentów (copy, grafik, marketing…) i rozdziela zadania."],
+  ["Dostajesz plan do akceptacji", "Widzisz zadania i zależności między nimi. Klikasz „Dawaj” albo odsyłasz do zmiany."],
+  ["Agenci pracują sami", "Po kolei, autonomicznie, w ramach budżetu — bez Twojego udziału."],
+  ["Wyniki czekają na Twoją zgodę", "Każda gotowa rzecz ląduje w „Do odbioru”. Zatwierdzasz albo odsyłasz z uwagami."],
+  ["Rozkaz wykonany", "Wszystko zatwierdzone — z podsumowaniem i realnym kosztem w dzienniku."],
+];
+
 const ADV: Array<[string, string]> = [
   ["Działa lokalnie", "Twój komputer, Twoje klucze. Zero chmury."],
   ["Nic nie wychodzi bez Ciebie", "Akceptujesz każdy plan i każdy wynik."],
@@ -189,6 +198,27 @@ export function Landing() {
             </div>
           ))}
         </div>
+      </section>
+
+      {/* co się dzieje potem */}
+      <section className="mx-auto max-w-2xl px-5 py-16">
+        <Label>Co się dzieje, gdy dasz zadanie</Label>
+        <h2 className="mb-9 text-center text-2xl font-bold tracking-tight sm:text-3xl">
+          Od jednego zdania do gotowego wyniku.
+        </h2>
+        <ol className="relative ml-2 flex flex-col gap-7 border-l border-white/[0.1] pl-7">
+          {FLOW.map(([title, desc], i) => (
+            <li key={title} className="relative">
+              <span className="absolute -left-[35px] flex h-6 w-6 items-center justify-center rounded-full border border-white/15 bg-[#0b0b0d] font-mono text-[11px] font-semibold text-white/80">
+                {i + 1}
+              </span>
+              <p className="text-[15px] font-semibold text-white/90">{title}</p>
+              <p className="mt-1 text-[13.5px] font-light leading-relaxed text-white/45">
+                {desc}
+              </p>
+            </li>
+          ))}
+        </ol>
       </section>
 
       {/* zalety */}
