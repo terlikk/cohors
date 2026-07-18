@@ -112,7 +112,7 @@ export function Landing() {
         </div>
         <div className="pointer-events-none absolute inset-0 bg-gradient-to-b from-transparent via-transparent to-[#030303]" />
 
-        <div className="relative z-10 max-w-2xl">
+        <div className="relative z-10 w-full min-w-0 max-w-2xl">
           <motion.h1
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
@@ -140,7 +140,7 @@ export function Landing() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mx-auto mt-8 max-w-lg"
+            className="mx-auto mt-8 w-full min-w-0 max-w-lg"
           >
             <CopyCommand command={INSTALL_CMD} />
             <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[12px] text-white/35">
