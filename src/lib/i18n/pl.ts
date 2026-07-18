@@ -20,6 +20,7 @@ export const pl = {
     pulpit: "Pulpit",
     robota: "Daj robotę",
     kanal: "Czat zespołu",
+    mapa: "Mapa zadań",
     odbior: "Do odbioru",
     dziennik: "Dziennik",
     agents: "Wszyscy agenci",
@@ -206,6 +207,13 @@ export const pl = {
       jobRequired: "Napisz jedno zdanie o tym, czym ma się zajmować.",
       customRoleRequired: "Nazwij własną rolę.",
     },
+  },
+  map: {
+    title: "Mapa zadań",
+    subtitle:
+      "Plan jako graf: zadania, kto je robi i co zależy od czego. Najedź na węzeł, żeby podświetlić powiązania.",
+    empty: "Jeszcze żadnego rozkazu. Daj zespołowi robotę, a plan pojawi się tu jako mapa.",
+    noTasks: "Ten rozkaz nie ma jeszcze zadań.",
   },
   channel: {
     title: "Czat zespołu",
