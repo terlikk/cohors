@@ -140,14 +140,19 @@ export function Landing() {
             initial={{ opacity: 0, y: 24 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.8, delay: 0.4 }}
-            className="mt-8 flex flex-wrap items-center justify-center gap-3"
+            className="mx-auto mt-8 max-w-lg"
           >
-            <a href="#pobierz" className="rounded-full bg-white px-7 py-3 text-sm font-semibold text-black transition hover:bg-white/90">
-              Pobierz za darmo
-            </a>
-            <a href="https://github.com/terlikk/cohors" className="rounded-full border border-white/15 px-7 py-3 text-sm font-semibold text-white/80 transition hover:bg-white/[0.06]">
-              Kod na GitHubie
-            </a>
+            <CopyCommand command={INSTALL_CMD} />
+            <div className="mt-3 flex flex-wrap items-center justify-center gap-x-3 gap-y-1 text-[12px] text-white/35">
+              <span className="font-mono">Node 20+ · git · darmowe</span>
+              <span className="hidden sm:inline">·</span>
+              <a
+                href="https://github.com/terlikk/cohors"
+                className="transition hover:text-white/70"
+              >
+                Kod na GitHubie →
+              </a>
+            </div>
           </motion.div>
         </div>
       </section>
