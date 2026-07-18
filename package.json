@@ -1,0 +1,35 @@
+{
+  "name": "cohors",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Cohors — open-source system for running a team of AI agents like a small company",
+  "license": "MIT",
+  "bin": {
+    "cohors": "./bin/cli.mjs"
+  },
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "app": "node bin/cli.mjs"
+  },
+  "dependencies": {
+    "@anthropic-ai/sdk": "^0.111.0",
+    "better-sqlite3": "^12.11.1",
+    "framer-motion": "^12.42.2",
+    "lucide-react": "^1.24.0",
+    "next": "^15.3.4",
+    "react": "^19.1.0",
+    "react-dom": "^19.1.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/postcss": "^4.1.10",
+    "@types/better-sqlite3": "^7.6.13",
+    "@types/node": "^22.15.0",
+    "@types/react": "^19.1.0",
+    "@types/react-dom": "^19.1.0",
+    "postcss": "^8.5.4",
+    "tailwindcss": "^4.1.10",
+    "typescript": "^5.8.3"
+  }
+}
