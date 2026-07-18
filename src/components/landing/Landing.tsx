@@ -124,6 +124,61 @@ export function Landing() {
   );
 }
 
+const PANELS: Array<{ file: string; title: string; desc: string }> = [
+  { file: "p01", title: "Zatrudnij szefa", desc: "Dajesz szefowi imię i odpowiadasz na kilka pytań o firmę i cel. To on zatrudni resztę zespołu i rozpisze plan." },
+  { file: "p02", title: "Czat z szefem", desc: "Rozmawiasz z nim po polsku jak z pracownikiem — dajesz cel, prosisz o raport. Stąd rusza cała robota." },
+  { file: "p03", title: "Pulpit", desc: "Co się dzieje na żywo: kafelki agentów ze statusami, alert o planie do akceptacji i dziennik zdarzeń." },
+  { file: "p04", title: "Daj robotę", desc: "Jedno pole na polecenie dla całego zespołu. Piszesz po ludzku, system rozbija to na zadania." },
+  { file: "p05", title: "Plan działania", desc: "Zanim ktoś zacznie: zadania, kto je robi, zależności. Akceptujesz („Dawaj”) albo odsyłasz do zmiany." },
+  { file: "p06", title: "Do odbioru — plan", desc: "Wszystko, co czeka na Twoją decyzję, w jednym miejscu. Najpierw ląduje tu plan od szefa." },
+  { file: "p07", title: "Do odbioru — wynik", desc: "Gotowy wynik agenta czeka na akceptację. Zatwierdzasz albo odsyłasz z uwagami — nic nie wychodzi bez Ciebie." },
+  { file: "p08", title: "Agent — Status", desc: "Co agent teraz robi, co ma w kolejce, ile wydał z budżetu i historia jego pracy." },
+  { file: "p09", title: "Agent — Czat", desc: "Rozmowa jeden-na-jeden z konkretnym agentem: pytasz o postępy, doprecyzowujesz zadanie." },
+  { file: "p10", title: "Agent — Profil", desc: "Opis stanowiska i odpowiedzi z onboardingu — trwała „pamięć” o tym, kim jest agent." },
+  { file: "p11", title: "Agent — Opcje", desc: "Zmieniasz budżet, silnik (Claude Code / Codex / API / własny HTTP) albo zwalniasz agenta." },
+  { file: "p12", title: "Wszyscy agenci", desc: "Cały zespół na jednym ekranie: role, statusy i budżety." },
+  { file: "p13", title: "Dziennik", desc: "Pełna historia: kto co zaczął, skończył i ile to kosztowało — z godziną i kwotą." },
+  { file: "p14", title: "Zatrudnij agenta", desc: "Gdy masz już zespół: dodajesz kolejnego — rola, imię, opis stanowiska, silnik, budżet." },
+];
+
+function PreviewGallery() {
+  const [i, setI] = useState(0);
+  const panel = PANELS[i];
+  return (
+    <div className="flex flex-col gap-3">
+      <div className="-mx-1 flex gap-1.5 overflow-x-auto px-1 pb-1">
+        {PANELS.map((p, idx) => (
+          <button
+            key={p.file}
+            type="button"
+            onClick={() => setI(idx)}
+            className={`whitespace-nowrap rounded-full px-3 py-1.5 text-[12px] font-semibold transition ${
+              i === idx
+                ? "bg-white text-black"
+                : "border border-white/12 text-white/55 hover:bg-white/[0.06]"
+            }`}
+          >
+            {p.title}
+          </button>
+        ))}
+      </div>
+      <div className="overflow-hidden rounded-xl border border-white/[0.08] bg-[#0b0b0d]">
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
+          key={panel.file}
+          src={`/panels/${panel.file}.png`}
+          alt={panel.title}
+          className="block max-h-[46vh] w-full object-contain"
+        />
+      </div>
+      <p className="text-center text-[13px] font-light leading-relaxed text-white/50">
+        <span className="font-semibold text-white/80">{panel.title}.</span>{" "}
+        {panel.desc}
+      </p>
+    </div>
+  );
+}
+
 function Card({ children }: { children: React.ReactNode }) {
   return (
     <div className="rounded-2xl border border-white/[0.08] bg-white/[0.02] p-5 text-left">
@@ -158,22 +213,7 @@ function Panel({ tab, onDownload }: { tab: Tab; onDownload: () => void }) {
   }
 
   if (tab === "Podgląd") {
-    return (
-      <Card>
-        <div className="overflow-hidden rounded-xl border border-white/[0.08]">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img
-            src="/dashboard-preview.png"
-            alt="Dashboard Cohors — zespół agentów, statusy i dziennik zdarzeń"
-            className="block w-full"
-          />
-        </div>
-        <p className="mt-3 text-center text-[12.5px] font-light text-white/40">
-          Tak wygląda dashboard — uruchamiasz go lokalnie po pobraniu.
-          Zatrudniasz agentów, wydajesz cel, zatwierdzasz wyniki.
-        </p>
-      </Card>
-    );
+    return <PreviewGallery />;
   }
 
   if (tab === "Przykłady") {
