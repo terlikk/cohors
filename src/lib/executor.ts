@@ -82,11 +82,15 @@ export async function tick(): Promise<{ started: number }> {
       await replyInChat(agent);
     }
 
-    // Team channel: if the boss's message is the newest, an agent replies.
-    const responder = pickTeamResponder();
-    if (responder && responder.monthCostUsd < responder.monthBudgetUsd) {
+    // Team channel: the whole team replies to the boss's message, in one
+    // pass (bounded so a huge team can't run away in a single tick).
+    let teamGuard = 0;
+    let responder = pickTeamResponder();
+    while (responder && teamGuard < 8) {
+      teamGuard++;
       started++;
       await replyInTeamChannel(responder);
+      responder = pickTeamResponder();
     }
 
     return { started };
