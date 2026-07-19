@@ -177,7 +177,15 @@ export async function approvePlan(formData: FormData): Promise<void> {
 
   approveOrder(orderId);
   addJournalEvent({ kind: "plan_approved", text: t.journalTexts.planApproved });
+  const boss = listAgents().find((a) => a.role === "manager");
+  addTeamMessage({
+    agentId: boss?.id ?? null,
+    authorName: boss?.name ?? "Zespół",
+    role: "manager",
+    text: "Plan zatwierdzony przez szefa — ruszamy do pracy! 🚀",
+  });
   revalidatePath("/pulpit");
+  revalidatePath("/kanal");
   revalidatePath(`/orders/${orderId}`);
 }
 
@@ -224,27 +232,46 @@ export async function approveTaskAction(formData: FormData): Promise<void> {
   if (!task || task.status !== "awaiting_approval") return;
 
   const agent = getAgent(task.agentId);
+  const order = getOrder(task.orderId);
   approveTask(taskId);
   addJournalEvent({
     agentId: task.agentId,
     kind: "approved",
     text: t.journalTexts.taskApproved(agent?.name ?? "?", task.title),
   });
+  // The agent announces the finished, approved piece of work.
+  addTeamMessage({
+    agentId: task.agentId,
+    authorName: agent?.name ?? "?",
+    role: agent?.role,
+    text: `✅ Zrobione i zatwierdzone: „${task.title}”.`,
+  });
 
   const completed = maybeCompleteOrder(task.orderId);
+  const manager = listAgents().find((a) => a.role === "manager");
   if (completed) {
-    const order = getOrder(task.orderId);
     addJournalEvent({
       kind: "order_done",
       text: t.journalTexts.orderDone(order?.text ?? "", completed.totalCostUsd),
     });
-    const manager = listAgents().find((a) => a.role === "manager");
     addTeamMessage({
       agentId: manager?.id ?? null,
       authorName: manager?.name ?? "Zespół",
       role: "manager",
       text: `Rozkaz „${order?.text ?? ""}” wykonany w całości. 🎉 Koszt: $${completed.totalCostUsd.toFixed(2)}.`,
     });
+  } else {
+    // Milestone: how far along is the whole order.
+    const orderTasks = listOrderTasks(task.orderId);
+    const done = orderTasks.filter((tk) => tk.status === "done").length;
+    if (orderTasks.length > 1) {
+      addTeamMessage({
+        agentId: manager?.id ?? null,
+        authorName: manager?.name ?? "Zespół",
+        role: "manager",
+        text: `📍 Kamień milowy: ${done}/${orderTasks.length} zadań gotowych w „${order?.text ?? ""}”.`,
+      });
+    }
   }
   revalidatePath("/pulpit");
   revalidatePath("/kanal");
@@ -282,7 +309,14 @@ export async function requestTaskChangesAction(
     kind: "changes_requested",
     text: t.journalTexts.taskChanges(agent?.name ?? "?", task.title, comment),
   });
+  addTeamMessage({
+    agentId: task.agentId,
+    authorName: agent?.name ?? "?",
+    role: agent?.role,
+    text: `↩︎ Biorę „${task.title}” do poprawki wg uwag szefa: „${comment}”.`,
+  });
   revalidatePath("/pulpit");
+  revalidatePath("/kanal");
   return {};
 }
 
