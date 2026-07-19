@@ -245,7 +245,9 @@ export const pl = {
     title: "Zatrudnij szefa zespołu",
     subtitle:
       "Twój pierwszy agent. Opowiedz mu o firmie i celach — on zatrudni resztę zespołu, rozdzieli zadania i będzie kierować pracą. Ty tylko akceptujesz plany i wyniki.",
-    nameLabel: "Jak ma się nazywać?",
+    companyLabel: "Nazwa firmy lub organizacji",
+    companyPlaceholder: "Np. Kawa i Spółka",
+    nameLabel: "Jak ma się nazywać szef?",
     namePlaceholder: "Np. Wiktor",
     submit: "Zatrudnij szefa",
     submitting: "Zatrudniam…",

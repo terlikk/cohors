@@ -49,13 +49,28 @@ export function HireBossForm({
 
         <div className="flex flex-col gap-4 rounded-2xl border border-line bg-panel p-5 sm:p-6">
           <div>
+            <label
+              className="text-[13px] font-semibold text-ink"
+              htmlFor="companyName"
+            >
+              {t.hireBoss.companyLabel}
+            </label>
+            <input
+              id="companyName"
+              name="companyName"
+              autoFocus
+              placeholder={t.hireBoss.companyPlaceholder}
+              className="mt-1.5 w-full rounded-xl border border-line bg-panel-2 px-4 py-2.5 text-ink placeholder:text-ink-muted/60 focus:border-accent focus:outline-none"
+            />
+          </div>
+
+          <div>
             <label className="text-[13px] font-semibold text-ink" htmlFor="name">
               {t.hireBoss.nameLabel}
             </label>
             <input
               id="name"
               name="name"
-              autoFocus
               placeholder={t.hireBoss.namePlaceholder}
               className="mt-1.5 w-full rounded-xl border border-line bg-panel-2 px-4 py-2.5 text-ink placeholder:text-ink-muted/60 focus:border-accent focus:outline-none"
             />

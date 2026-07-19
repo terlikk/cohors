@@ -55,14 +55,32 @@ function NavItem({
   );
 }
 
+const AVATAR_COLORS = [
+  "#5856d6",
+  "#0a84ff",
+  "#ff453a",
+  "#30d158",
+  "#ff9f0a",
+  "#bf5af2",
+  "#64d2ff",
+];
+
+function companyColor(name: string): string {
+  let h = 0;
+  for (let i = 0; i < name.length; i++) h = (h * 31 + name.charCodeAt(i)) >>> 0;
+  return AVATAR_COLORS[h % AVATAR_COLORS.length];
+}
+
 export function Sidebar({
   agents,
   awaitingCount,
   monthSpend,
+  companyName,
 }: {
   agents: SidebarAgent[];
   awaitingCount: number;
   monthSpend: number;
+  companyName?: string;
 }) {
   const pathname = usePathname();
   const is = (href: string) =>
@@ -70,12 +88,29 @@ export function Sidebar({
 
   return (
     <aside className="w-full border-b border-line bg-panel px-3.5 py-4 md:sticky md:top-0 md:flex md:h-dvh md:w-[236px] md:shrink-0 md:flex-col md:gap-6 md:overflow-y-auto md:border-b-0 md:border-r md:py-6">
-      <div className="px-3">
-        <p className="text-[15px] font-bold leading-tight tracking-tight text-ink">
-          {t.brand.name}
-        </p>
-        <p className="text-[11.5px] text-ink-muted">{t.brand.tagline}</p>
-      </div>
+      {companyName ? (
+        <div className="flex items-center gap-2.5 rounded-xl bg-panel-2 px-2.5 py-2">
+          <span
+            className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-sm font-bold text-white"
+            style={{ background: companyColor(companyName) }}
+          >
+            {companyName[0].toUpperCase()}
+          </span>
+          <div className="min-w-0">
+            <p className="truncate text-[13.5px] font-bold leading-tight tracking-tight text-ink">
+              {companyName}
+            </p>
+            <p className="text-[10.5px] text-ink-muted">{t.brand.name}</p>
+          </div>
+        </div>
+      ) : (
+        <div className="px-3">
+          <p className="text-[15px] font-bold leading-tight tracking-tight text-ink">
+            {t.brand.name}
+          </p>
+          <p className="text-[11.5px] text-ink-muted">{t.brand.tagline}</p>
+        </div>
+      )}
 
       <nav className="mt-3 flex flex-row flex-wrap gap-1.5 md:mt-0 md:flex-col md:gap-6">
         <div className="flex flex-row flex-wrap gap-1.5 md:flex-col md:gap-0.5">

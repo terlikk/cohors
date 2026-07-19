@@ -2,6 +2,7 @@ import { AutoRefresh } from "@/components/AutoRefresh";
 import { Sidebar } from "@/components/Sidebar";
 import { t } from "@/lib/i18n";
 import {
+  getSetting,
   listAgents,
   listAwaitingTasks,
   listPendingOrders,
@@ -15,6 +16,7 @@ export default async function AppLayout({
   const awaitingCount =
     listAwaitingTasks().length + listPendingOrders().length;
   const monthSpend = monthTotalCostUsd();
+  const companyName = getSetting("company_name") ?? "";
 
   return (
     <>
@@ -29,6 +31,7 @@ export default async function AppLayout({
           }))}
           awaitingCount={awaitingCount}
           monthSpend={monthSpend}
+          companyName={companyName}
         />
         <main className="min-w-0 flex-1 md:h-dvh md:min-h-0">
           <div className="mx-auto flex w-full max-w-[1080px] flex-col gap-5 px-4 py-6 sm:px-8 sm:py-7 md:h-full md:min-h-0">

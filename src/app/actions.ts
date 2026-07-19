@@ -127,6 +127,9 @@ export async function hireBossAction(
   const name = String(formData.get("name") ?? "").trim();
   if (!name) return { error: t.hire.errors.nameRequired };
 
+  const companyName = String(formData.get("companyName") ?? "").trim();
+  if (companyName) setSetting("company_name", companyName);
+
   const engine = String(formData.get("engine") ?? "") as EngineKey;
   const engineUrl = String(formData.get("engineUrl") ?? "").trim();
   const budget = Number(formData.get("budget") ?? 10);
