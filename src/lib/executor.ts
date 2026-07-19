@@ -95,19 +95,50 @@ export async function tick(): Promise<{ started: number }> {
   }
 }
 
-/** Who should answer on the team channel — null if no reply is due. */
+/**
+ * Who should answer on the team channel next — null if no reply is due.
+ * On a boss message the whole team replies once each (manager first, then
+ * the rest), one per tick; a name-addressed message gets a single reply.
+ */
 function pickTeamResponder(): Agent | null {
-  const last = getLatestTeamMessage();
-  if (!last || last.agentId !== null) return null; // newest isn't from the boss
-  const agents = listAgents();
-  if (agents.length === 0) return null;
-  // Directly addressed by name? ("Celina, ...") → that agent answers.
-  const addressed = agents.find((a) =>
-    new RegExp(`(^|\\s)${a.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(
-      last.text.slice(0, 40),
-    ),
+  const history = listTeamMessages(50);
+  if (history.length === 0) return null;
+
+  // Index of the most recent boss message (agentId === null).
+  let bossIdx = -1;
+  for (let i = history.length - 1; i >= 0; i--) {
+    if (history[i].agentId === null) {
+      bossIdx = i;
+      break;
+    }
+  }
+  if (bossIdx === -1) return null;
+
+  const bossText = history[bossIdx].text;
+  const repliedSince = new Set(
+    history.slice(bossIdx + 1).map((m) => m.agentId),
   );
-  return addressed ?? agents.find((a) => a.role === "manager") ?? agents[0];
+
+  // Only agents still within budget can reply.
+  const agents = listAgents().filter(
+    (a) => a.monthCostUsd < a.monthBudgetUsd,
+  );
+  if (agents.length === 0) return null;
+
+  // Directly addressed by name? ("Celina, ...") → only that agent, once.
+  const addressed = agents.find((a) =>
+    new RegExp(
+      `(^|\\s)${a.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`,
+      "i",
+    ).test(bossText.slice(0, 40)),
+  );
+  if (addressed) return repliedSince.has(addressed.id) ? null : addressed;
+
+  // Otherwise the whole team chimes in, manager first, one per tick.
+  const ordered = [...agents].sort(
+    (a, b) => (b.role === "manager" ? 1 : 0) - (a.role === "manager" ? 1 : 0),
+  );
+  return ordered.find((a) => !repliedSince.has(a.id)) ?? null;
 }
 
 async function replyInTeamChannel(agent: Agent): Promise<void> {
