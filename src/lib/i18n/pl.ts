@@ -163,8 +163,15 @@ export const pl = {
     heading: "Do odbioru",
     empty: "Nic nie czeka na Twoją decyzję.",
     approve: "Zatwierdź",
+    approveAndPublish: "Zatwierdź i wyślij",
     requestChanges: "Uwagi",
     from: "od",
+    publishLabel: "Publikacja (webhook)",
+    publishHint:
+      "Po „Zatwierdź i wyślij” wynik trafi na ten adres (Zapier/Make/własny) — a stamtąd na Instagram, maila itd. Zostaw puste, żeby wyłączyć.",
+    publishPlaceholder: "https://hooks.zapier.com/…",
+    publishSave: "Zapisz",
+    publishSaved: "Zapisano.",
     showMore: "Pokaż całość",
     showLess: "Zwiń",
     feedbackPlaceholder:

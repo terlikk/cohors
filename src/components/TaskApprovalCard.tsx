@@ -15,9 +15,11 @@ const PREVIEW_CHARS = 420;
 export function TaskApprovalCard({
   task,
   agent,
+  hasWebhook,
 }: {
   task: Task;
   agent?: Agent;
+  hasWebhook?: boolean;
 }) {
   const [expanded, setExpanded] = useState(false);
   const [showFeedback, setShowFeedback] = useState(false);
@@ -69,15 +71,25 @@ export function TaskApprovalCard({
         </button>
       )}
 
-      <footer className="mt-4 flex gap-2">
-        <form action={approveTaskAction} className="flex-1">
+      <footer className="mt-4 flex flex-wrap gap-2">
+        <form action={approveTaskAction} className="flex flex-1 gap-2">
           <input type="hidden" name="taskId" value={task.id} />
           <button
             type="submit"
-            className="w-full rounded-full bg-accent px-4 py-2.5 font-display text-sm font-semibold text-white transition hover:brightness-110"
+            className="flex-1 rounded-full bg-accent px-4 py-2.5 font-display text-sm font-semibold text-white transition hover:brightness-110"
           >
             {t.approvals.approve}
           </button>
+          {hasWebhook && (
+            <button
+              type="submit"
+              name="publish"
+              value="1"
+              className="flex-1 whitespace-nowrap rounded-full border border-accent/50 bg-panel-2 px-4 py-2.5 font-display text-sm font-semibold text-accent transition hover:bg-accent/10"
+            >
+              {t.approvals.approveAndPublish}
+            </button>
+          )}
         </form>
         <button
           type="button"

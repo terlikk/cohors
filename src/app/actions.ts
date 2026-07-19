@@ -15,15 +15,47 @@ import {
   deleteAgent,
   getAgent,
   getOrder,
+  getSetting,
   getTask,
   listAgents,
   listOrderTasks,
   maybeCompleteOrder,
   replaceOrderPlan,
   requestTaskChanges,
+  setSetting,
   setTaskStatus,
   updateAgentSettings,
 } from "@/lib/repo";
+
+/** POSTs a published deliverable to the boss's configured webhook. */
+async function publishToWebhook(payload: {
+  order: string;
+  task: string;
+  agent: string;
+  role: string;
+  result: string;
+}): Promise<boolean> {
+  const url = getSetting("publish_webhook");
+  if (!url) return false;
+  try {
+    const res = await fetch(url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ source: "cohors", ...payload }),
+    });
+    return res.ok;
+  } catch (err) {
+    console.error("publish webhook failed:", err);
+    return false;
+  }
+}
+
+export async function setPublishWebhookAction(
+  formData: FormData,
+): Promise<void> {
+  setSetting("publish_webhook", String(formData.get("webhook") ?? "").trim());
+  revalidatePath("/odbior");
+}
 import type { EngineKey, RoleKey } from "@/lib/types";
 
 const ROLES: RoleKey[] = [
@@ -228,6 +260,7 @@ export async function requestPlanChanges(
 
 export async function approveTaskAction(formData: FormData): Promise<void> {
   const taskId = String(formData.get("taskId") ?? "");
+  const publish = String(formData.get("publish") ?? "") === "1";
   const task = getTask(taskId);
   if (!task || task.status !== "awaiting_approval") return;
 
@@ -246,6 +279,32 @@ export async function approveTaskAction(formData: FormData): Promise<void> {
     role: agent?.role,
     text: `✅ Zrobione i zatwierdzone: „${task.title}”.`,
   });
+
+  // Publish the approved result to the configured webhook, if requested.
+  if (publish) {
+    const sent = await publishToWebhook({
+      order: order?.text ?? "",
+      task: task.title,
+      agent: agent?.name ?? "",
+      role: agent ? (agent.customRoleLabel ?? agent.role) : "",
+      result: task.result ?? "",
+    });
+    addJournalEvent({
+      agentId: task.agentId,
+      kind: "approved",
+      text: sent
+        ? `Wysłano dalej: „${task.title}”`
+        : `Nie udało się wysłać „${task.title}” (sprawdź webhook)`,
+    });
+    if (sent) {
+      addTeamMessage({
+        agentId: task.agentId,
+        authorName: agent?.name ?? "?",
+        role: agent?.role,
+        text: `📤 Wysłane w świat: „${task.title}”.`,
+      });
+    }
+  }
 
   const completed = maybeCompleteOrder(task.orderId);
   const manager = listAgents().find((a) => a.role === "manager");
