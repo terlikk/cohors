@@ -68,9 +68,18 @@ export const pl = {
       tabs: {
         status: "Status",
         czat: "Czat",
+        pliki: "Pliki",
         profil: "Profil",
         opcje: "Opcje",
       },
+      toolsHeading: "Narzędzia",
+      toolsHint: "Czego ten agent może użyć, żeby naprawdę wykonać pracę.",
+      filesHeading: "Pliki agenta",
+      filesHint: "Pliki, które agent utworzył podczas pracy — kliknij, żeby pobrać.",
+      filesEmpty:
+        "Ten agent nie zapisał jeszcze żadnych plików. Gdy podczas zadania coś utworzy (dokument, grafikę, dane), pojawi się tutaj.",
+      showStatus: "Pokaż status",
+      statusPosted: "Status wysłany na czat zespołu.",
       nowHeading: "Co teraz robi",
       nowIdle: "Nic w tej chwili — wolny i czeka na zadania.",
       nowSince: "w toku",

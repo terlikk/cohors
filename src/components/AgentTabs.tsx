@@ -10,6 +10,7 @@ export function AgentTabs({ agentId }: { agentId: string }) {
   const tabs = [
     { href: base, label: t.pages.agent.tabs.status },
     { href: `${base}/czat`, label: t.pages.agent.tabs.czat },
+    { href: `${base}/pliki`, label: t.pages.agent.tabs.pliki },
     { href: `${base}/profil`, label: t.pages.agent.tabs.profil },
     { href: `${base}/opcje`, label: t.pages.agent.tabs.opcje },
   ];

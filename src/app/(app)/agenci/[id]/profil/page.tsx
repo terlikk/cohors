@@ -1,6 +1,7 @@
 import { notFound } from "next/navigation";
 import { t } from "@/lib/i18n";
 import { getAgent, getAgentOnboarding } from "@/lib/repo";
+import { toolsForRole } from "@/lib/tools";
 
 export const dynamic = "force-dynamic";
 
@@ -14,6 +15,7 @@ export default async function AgentProfilePage({
   if (!agent) notFound();
 
   const onboarding = getAgentOnboarding(id);
+  const tools = toolsForRole(agent.role);
 
   return (
     <div className="flex flex-col gap-4 md:min-h-0 md:flex-1 md:overflow-y-auto">
@@ -25,6 +27,28 @@ export default async function AgentProfilePage({
           „{agent.jobDescription}”
         </p>
       </section>
+
+      {tools.length > 0 && (
+        <section className="rounded-2xl border border-line bg-panel p-5">
+          <h2 className="text-[13px] font-semibold text-ink">
+            {t.pages.agent.toolsHeading}
+          </h2>
+          <p className="mt-1 text-[12px] text-ink-muted">
+            {t.pages.agent.toolsHint}
+          </p>
+          <div className="mt-3 flex flex-wrap gap-2">
+            {tools.map((tool) => (
+              <span
+                key={tool.key}
+                title={tool.hint}
+                className="rounded-full border border-line bg-panel-2 px-3 py-1.5 text-[12.5px] font-medium text-ink"
+              >
+                {tool.label}
+              </span>
+            ))}
+          </div>
+        </section>
+      )}
 
       {onboarding.length > 0 && (
         <section className="rounded-2xl border border-line bg-panel p-5">

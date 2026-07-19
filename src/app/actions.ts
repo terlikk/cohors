@@ -336,6 +336,28 @@ export async function sendTeamMessage(formData: FormData): Promise<void> {
   revalidatePath("/kanal");
 }
 
+/** Agent reports its current status to the team channel on demand. */
+export async function requestAgentStatus(formData: FormData): Promise<void> {
+  const agentId = String(formData.get("agentId") ?? "");
+  const agent = getAgent(agentId);
+  if (!agent) return;
+
+  const text = agent.currentTask
+    ? `Status: pracuję nad „${agent.currentTask}”.`
+    : agent.status === "waiting_for_boss"
+      ? "Status: mam gotowy wynik — czeka na Twój odbiór."
+      : "Status: wolny, czekam na zadania.";
+
+  addTeamMessage({
+    agentId: agent.id,
+    authorName: agent.name,
+    role: agent.role,
+    text,
+  });
+  revalidatePath("/kanal");
+  revalidatePath(`/agenci/${agentId}`);
+}
+
 export interface AgentSettingsState {
   saved?: boolean;
 }

@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import { requestAgentStatus } from "@/app/actions";
 import { t } from "@/lib/i18n";
 import { getAgent, listAgentTasks } from "@/lib/repo";
 
@@ -35,9 +36,20 @@ export default async function AgentStatusPage({
       <div className="flex flex-col gap-4 md:min-h-0 md:overflow-y-auto">
         {/* Co teraz robi */}
         <section className="rounded-2xl border border-line bg-panel p-5">
-          <h2 className="text-[13px] font-semibold text-ink">
-            {t.pages.agent.nowHeading}
-          </h2>
+          <div className="flex items-center justify-between gap-2">
+            <h2 className="text-[13px] font-semibold text-ink">
+              {t.pages.agent.nowHeading}
+            </h2>
+            <form action={requestAgentStatus}>
+              <input type="hidden" name="agentId" value={agent.id} />
+              <button
+                type="submit"
+                className="rounded-full border border-line bg-panel-2 px-3.5 py-1.5 text-[12px] font-semibold text-ink transition hover:brightness-110"
+              >
+                {t.pages.agent.showStatus}
+              </button>
+            </form>
+          </div>
           {current ? (
             <div className="mt-2.5">
               <p className="flex items-center gap-2 text-sm font-semibold text-ink">

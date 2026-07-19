@@ -1,4 +1,5 @@
 import type { Agent, EngineKey } from "@/lib/types";
+import { toolsForRole } from "@/lib/tools";
 
 /** Everything an engine needs to do one unit of an agent's work. */
 export interface EngineTaskInput {
@@ -43,6 +44,15 @@ export function buildTaskPrompt(input: EngineTaskInput): {
           .join("\n")}`
       : "";
 
+  const tools = toolsForRole(agent.role);
+  const toolsPart =
+    tools.length > 0
+      ? `\n\nTools you can use — use them for real to do the work: ${tools
+          .map((t) => `${t.label} (${t.hint})`)
+          .join("; ")}. ` +
+        `When you create files, save them in your current working directory so the boss can download them.`
+      : "";
+
   const system =
     `You are ${agent.name}, an employee of a small company. ` +
     `Your job description, written by the boss: "${agent.jobDescription}". ` +
@@ -50,6 +60,7 @@ export function buildTaskPrompt(input: EngineTaskInput): {
     `Nothing you produce is published or deployed automatically — the boss approves everything first, ` +
     `so always produce the complete, final deliverable (not a plan of what you would do). ` +
     `Write the deliverable in Polish unless the task clearly requires another language.` +
+    toolsPart +
     onboardingPart;
 
   const depsPart =
