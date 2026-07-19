@@ -5,7 +5,7 @@
  * the localhost link. Pure Node, no dependencies.
  */
 import { spawn, spawnSync } from "node:child_process";
-import { existsSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import net from "node:net";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
@@ -206,11 +206,28 @@ async function main() {
     await step("Instaluję zależności", "npm", ["install", "--no-fund", "--no-audit"]);
   }
 
-  /* 3 — build */
-  if (existsSync(path.join(ROOT, ".next", "BUILD_ID"))) {
-    done("Aplikacja zbudowana", "użyję poprzedniego builda — wymuszenie: --rebuild");
+  /* 3 — build (rebuild when the code changed since the last build) */
+  const builtMarker = path.join(ROOT, ".next", "cohors-built-commit");
+  const head = spawnSync("git", ["rev-parse", "HEAD"], {
+    cwd: ROOT,
+    encoding: "utf8",
+  });
+  const sha = head.status === 0 ? head.stdout.trim() : null;
+  const builtSha = existsSync(builtMarker)
+    ? readFileSync(builtMarker, "utf8").trim()
+    : null;
+  const hasBuild = existsSync(path.join(ROOT, ".next", "BUILD_ID"));
+  const upToDate = hasBuild && (sha === null || builtSha === sha);
+
+  if (upToDate) {
+    done("Aplikacja zbudowana", "użyję poprzedniego builda");
   } else {
-    await step("Buduję aplikację", "npx", ["next", "build"]);
+    await step(
+      hasBuild ? "Buduję aplikację (kod się zmienił)" : "Buduję aplikację",
+      "npx",
+      ["next", "build"],
+    );
+    if (sha) writeFileSync(builtMarker, sha);
   }
 
   /* 4 — start */
