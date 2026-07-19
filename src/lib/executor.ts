@@ -8,12 +8,15 @@ import {
   getAgent,
   getAgentOnboarding,
   getDependencyResults,
+  getLatestTeamMessage,
   getOrder,
   lastEventIsBudgetStop,
+  listAgents,
   listAgentsAwaitingChatReply,
   listAgentTasks,
   listEligibleTasks,
   listMessages,
+  listTeamMessages,
   saveTaskResult,
   setTaskStatus,
 } from "@/lib/repo";
@@ -79,9 +82,76 @@ export async function tick(): Promise<{ started: number }> {
       await replyInChat(agent);
     }
 
+    // Team channel: if the boss's message is the newest, an agent replies.
+    const responder = pickTeamResponder();
+    if (responder && responder.monthCostUsd < responder.monthBudgetUsd) {
+      started++;
+      await replyInTeamChannel(responder);
+    }
+
     return { started };
   } finally {
     globalForExecutor.__ticking = false;
+  }
+}
+
+/** Who should answer on the team channel — null if no reply is due. */
+function pickTeamResponder(): Agent | null {
+  const last = getLatestTeamMessage();
+  if (!last || last.agentId !== null) return null; // newest isn't from the boss
+  const agents = listAgents();
+  if (agents.length === 0) return null;
+  // Directly addressed by name? ("Celina, ...") → that agent answers.
+  const addressed = agents.find((a) =>
+    new RegExp(`(^|\\s)${a.name.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")}\\b`, "i").test(
+      last.text.slice(0, 40),
+    ),
+  );
+  return addressed ?? agents.find((a) => a.role === "manager") ?? agents[0];
+}
+
+async function replyInTeamChannel(agent: Agent): Promise<void> {
+  const history = listTeamMessages(16);
+  const lastBoss = [...history].reverse().find((m) => m.agentId === null);
+  if (!lastBoss) return;
+
+  const historyPart = history
+    .map((m) => `${m.authorName}: ${m.text}`)
+    .join("\n");
+
+  try {
+    const engine = getEngine(agent.engine);
+    const result = await engine.runTask({
+      agent,
+      onboarding: getAgentOnboarding(agent.id),
+      task: {
+        title: "Odpowiedź na czacie zespołu",
+        description:
+          `You are ${agent.name}, in the team's group chat with the boss and other agents. ` +
+          `The boss just wrote: "${lastBoss.text}". Reply briefly and naturally in Polish (1-2 sentences), ` +
+          `as this agent talking in a team channel. If the boss gives you something to do, acknowledge it ` +
+          `and say you'll take care of it. Do not repeat the message back.\n\nRecent channel:\n${historyPart}`,
+      },
+      orderText: lastBoss.text,
+      dependencyResults: [],
+    });
+
+    addTeamMessage({
+      agentId: agent.id,
+      authorName: agent.name,
+      role: agent.role,
+      text: result.output.trim(),
+    });
+    if (result.costUsd > 0) {
+      addJournalEvent({
+        agentId: agent.id,
+        kind: "chat",
+        text: t.journalTexts.chatCost(agent.name),
+        costUsd: result.costUsd,
+      });
+    }
+  } catch (err) {
+    console.error(`team-channel reply for agent ${agent.id} failed:`, err);
   }
 }
 

@@ -597,6 +597,11 @@ export function addTeamMessage(input: {
   );
 }
 
+/** The single most recent team-channel message (or null if empty). */
+export function getLatestTeamMessage(): TeamMessage | null {
+  return listTeamMessages(1)[0] ?? null;
+}
+
 /** Newest `limit` team-channel messages, oldest-first for display. */
 export function listTeamMessages(limit = 100): TeamMessage[] {
   const rows = db

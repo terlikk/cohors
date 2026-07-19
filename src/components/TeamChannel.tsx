@@ -12,6 +12,8 @@ function colorFor(role: string | null): string {
 }
 
 export function TeamChannel({ messages }: { messages: TeamMessage[] }) {
+  const awaitingReply =
+    messages.length > 0 && messages[messages.length - 1].agentId === null;
   return (
     <section className="flex flex-col rounded-2xl border border-line bg-panel p-5 md:min-h-0 md:flex-1">
       <div className="flex min-h-[300px] flex-col gap-3 overflow-y-auto md:min-h-0 md:flex-1">
@@ -43,6 +45,15 @@ export function TeamChannel({ messages }: { messages: TeamMessage[] }) {
             </div>
           );
         })}
+        {awaitingReply && (
+          <p className="flex items-center gap-2 self-start px-1 text-[12px] text-ink-muted">
+            <span
+              className="status-dot status-dot--live"
+              style={{ color: "#c7c7cc", width: 6, height: 6 }}
+            />
+            zespół odpisuje…
+          </p>
+        )}
       </div>
 
       <form action={sendTeamMessage} className="mt-3 flex gap-2">
