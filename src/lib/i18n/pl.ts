@@ -242,14 +242,18 @@ export const pl = {
     you: "Ty",
   },
   hireBoss: {
-    title: "Zatrudnij szefa zespołu",
+    badge: "Konfiguracja · pierwsze uruchomienie",
+    title: "Skonfigurujmy Twój zespół",
     subtitle:
-      "Twój pierwszy agent. Opowiedz mu o firmie i celach — on zatrudni resztę zespołu, rozdzieli zadania i będzie kierować pracą. Ty tylko akceptujesz plany i wyniki.",
+      "To jednorazowy setup. Powiedz o firmie i celu, zatrudnij szefa — a on zbuduje resztę zespołu i będzie kierować pracą. Ty zawsze akceptujesz plany i wyniki.",
+    sectionCompany: "Twoja firma",
+    sectionBoss: "Szef zespołu",
+    sectionEngine: "Mózg i budżet",
     companyLabel: "Nazwa firmy lub organizacji",
     companyPlaceholder: "Np. Kawa i Spółka",
     nameLabel: "Jak ma się nazywać szef?",
     namePlaceholder: "Np. Wiktor",
-    submit: "Zatrudnij szefa",
+    submit: "Zapisz i zacznij",
     submitting: "Zatrudniam…",
     footnote:
       "Wszystkie odpowiedzi trafią do jego profilu — możesz je potem uzupełnić na czacie.",

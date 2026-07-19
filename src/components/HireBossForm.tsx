@@ -13,6 +13,14 @@ const ENGINE_OPTIONS: EngineKey[] = [
   "http",
 ];
 
+function SectionLabel({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="text-[10.5px] font-semibold uppercase tracking-[0.09em] text-ink-muted/70">
+      {children}
+    </p>
+  );
+}
+
 export function HireBossForm({
   engineAvailability,
 }: {
@@ -33,6 +41,9 @@ export function HireBossForm({
         className="flex w-full max-w-[580px] flex-col gap-4 pb-6"
       >
         <div className="pt-2 text-center">
+          <span className="mb-4 inline-block rounded-full border border-line bg-panel-2 px-3 py-1 font-mono text-[10.5px] uppercase tracking-[0.08em] text-ink-muted">
+            {t.hireBoss.badge}
+          </span>
           <div
             className="mx-auto mb-3.5 flex h-14 w-14 items-center justify-center rounded-2xl text-xl font-bold text-white"
             style={{ background: roleColor.manager }}
@@ -48,6 +59,7 @@ export function HireBossForm({
         </div>
 
         <div className="flex flex-col gap-4 rounded-2xl border border-line bg-panel p-5 sm:p-6">
+          <SectionLabel>{t.hireBoss.sectionCompany}</SectionLabel>
           <div>
             <label
               className="text-[13px] font-semibold text-ink"
@@ -64,6 +76,9 @@ export function HireBossForm({
             />
           </div>
 
+          <div className="border-t border-line pt-4">
+            <SectionLabel>{t.hireBoss.sectionBoss}</SectionLabel>
+          </div>
           <div>
             <label className="text-[13px] font-semibold text-ink" htmlFor="name">
               {t.hireBoss.nameLabel}
@@ -100,6 +115,7 @@ export function HireBossForm({
           ))}
 
           <div className="flex flex-col gap-4 border-t border-line pt-4">
+            <SectionLabel>{t.hireBoss.sectionEngine}</SectionLabel>
             <div>
               <span className="text-[13px] font-semibold text-ink">
                 {t.hire.engineLabel}
